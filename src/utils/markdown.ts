@@ -5,37 +5,35 @@ import { join } from "path";
 const postsDirectory = join(process.cwd(), "markdown/blogs");
 
 export function getPostSlugs() {
+  if (!fs.existsSync(postsDirectory)) {
+    return [];
+  }
   return fs.readdirSync(postsDirectory);
 }
 
 export function getPostBySlug(slug: string, fields: string[] = []) {
   const realSlug = slug.replace(/\.mdx$/, "");
   const fullPath = join(postsDirectory, `${realSlug}.mdx`);
+  
+  if (!fs.existsSync(fullPath)) {
+    return {};
+  }
+
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
 
-  type Items = {
-    // [key: string]: string;
-    [key: string]: string | object;
-  };
+  const items: Record<string, any> = {};
 
-  const items: any = {};
-
-  // Ensure only the minimal needed data is exposed
   fields.forEach((field) => {
     if (field === "slug") {
       items[field] = realSlug;
     }
     if (field === "content") {
-      // You can modify the content here to include images
-      items[field] = (content);
+      items[field] = content;
     }
-
     if (field === "metadata") {
-      // Include metadata, including the image information
       items[field] = { ...data, coverImage: data.coverImage || null };
     }
-
     if (typeof data[field] !== "undefined") {
       items[field] = data[field];
     }
@@ -48,7 +46,7 @@ export function getAllPosts(fields: string[] = []) {
   const slugs = getPostSlugs();
   const posts = slugs
     .map((slug) => getPostBySlug(slug, fields))
-    // sort posts by date in descending order
+    .filter((post) => Object.keys(post).length > 0)
     .sort((post1, post2) => (post1.date > post2.date ? -1 : 1));
 
   return posts;
