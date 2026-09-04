@@ -1,5 +1,5 @@
 
-import BlogCard from "@/app/components/shared/blog/blogCard";
+import BlogCard from "@/app/components/shared/blog/BlogCard";
 import HeroSub from "@/app/components/shared/hero-sub";
 import { getAllPosts } from "@/utils/markdown";
 import { Metadata } from "next";

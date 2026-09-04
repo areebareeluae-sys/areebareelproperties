@@ -1,6 +1,6 @@
 import React from 'react'
 import { getAllPosts } from "@/utils/markdown";
-import BlogCard from './blogCard';
+import BlogCard from './BlogCard';
 
 const BlogSmall: React.FC = () => {
     const posts = getAllPosts(["title", "date", "excerpt", "coverImage", "slug"]).slice(0, 2);
