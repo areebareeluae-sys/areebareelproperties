@@ -10,14 +10,6 @@ const headerData = [
       { label: "Property Details", href: "/properties/properties-list/modern-apartment" },
     ],
   },
-  {
-    label: "Blogs",
-    href: "#",
-    submenu: [
-      { label: "Blog Grid", href: "/blogs" },
-      { label: "Blog Details", href: "/blogs/blog_1" },
-    ],
-  },
   { label: "Contact", href: "/contact" }
   
 ];

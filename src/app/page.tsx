@@ -5,7 +5,6 @@ import Calculator from './components/home/calculator';
 import History from './components/home/history';
 import Features from './components/shared/features';
 import CompanyInfo from './components/home/info';
-import BlogSmall from './components/shared/blog';
 import DiscoverProperties from './components/home/property-option';
 import Listing from './components/home/property-list';
 import Testimonials from './components/home/testimonial';
@@ -24,7 +23,6 @@ export default function Home() {
       <History />
       <Testimonials />
       <CompanyInfo />
-      <BlogSmall />
     </main>
   )
 }
