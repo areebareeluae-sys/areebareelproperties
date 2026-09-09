@@ -16,6 +16,8 @@ interface Property {
   beds: number;
   baths: number;
   garages: number;
+  country: string;  // Changed from optional to match AddPropertyModal
+  currency: string; // Changed from optional to match AddPropertyModal
 }
 
 export default function MyPropertiesPage() {
