@@ -9,7 +9,7 @@ import DiscoverProperties from './components/home/property-option';
 import Listing from './components/home/property-list';
 import Testimonials from './components/home/testimonial';
 export const metadata: Metadata = {
-  title: "Property",
+  title: "chironproerties.com | Home",
 };
 
 export default function Home() {

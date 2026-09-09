@@ -1,6 +1,7 @@
 export interface Filters {
   keyword?: string;
   location?: string;
+  country?: string;
   region?: string;
   status?: string;
   category?: string;

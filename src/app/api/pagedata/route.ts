@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server";
 
+interface SearchOption {
+    value: string;
+    label: string;
+    placeholder?: string;
+}
+
+interface SearchOptions {
+    keywords: SearchOption[];
+    country: SearchOption[];
+    category: SearchOption[];
+    beds: SearchOption[];
+    garages: SearchOption[];
+    [key: string]: SearchOption[];
+}
+
 const menuItems = [
     { name: "Home", href: "#home" },
     { name: "About", href: "#about" },
@@ -30,27 +45,23 @@ const features = [
     }
 ];
 
-const searchOptions = {
+const searchOptions: SearchOptions = {
     keywords: [
         { value: '', label: 'Keyword', placeholder: 'Keyword' },
-        // Add more keyword options as needed
     ],
-    locations: [
-        { value: '', label: 'Location' }, // Placeholder option
-        { value: 'California', label: 'California' },
-        { value: 'Texas', label: 'Texas' },
-        { value: 'New York', label: 'New York' },
-        { value: 'Florida', label: 'Florida' },
-        { value: 'Illinois', label: 'Illinois' },
+    country: [
+        { value: '', label: 'Select Country' },
+        { value: 'Pakistan', label: 'Pakistan' },
+        { value: 'United Arab Emirates', label: 'United Arab Emirates' },
     ],
-    category : [
-        { value:'', label: 'Category' },
-        { value:'apartment', label: 'Apartment' },
-        { value:'villa', label: 'Villa' },
-        { value:'office', label: 'Office' },
-        { value:'shop', label: 'Shop' },
-        { value:'house', label: 'House' },
-        { value:'warehouse', label: 'Warehouse' },
+    category: [
+        { value: '', label: 'Category' },
+        { value: 'apartment', label: 'Apartment' },
+        { value: 'villa', label: 'Villa' },
+        { value: 'office', label: 'Office' },
+        { value: 'shop', label: 'Shop' },
+        { value: 'house', label: 'House' },
+        { value: 'warehouse', label: 'Warehouse' },
     ],
     beds: [
         { value: '', label: 'Beds' },
@@ -59,15 +70,12 @@ const searchOptions = {
         { value: '3', label: '3 Beds' },
         { value: '4', label: '4 Beds' },
         { value: '5', label: '5 Beds' },
-        // Add more bed options as needed
     ],
     garages: [
         { value: '', label: 'Garages' },
         { value: '1', label: '1 Garage' },
         { value: '2', label: '2 Garages' },
-        // Add more garage options as needed
     ],
-    // Define other options similarly
 };
 
 const data = [

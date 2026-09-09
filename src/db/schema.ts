@@ -2,9 +2,11 @@ import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 
 export const properties = sqliteTable('properties', {
   id: text('id').primaryKey(),
-  userId: text('user_id').notNull(), // <--- Yeh field lazmi add karein
+  userId: text('user_id').notNull(),
   property_title: text('property_title').notNull(),
   location: text('location').notNull(),
+  country: text('country').notNull().default('Pakistan'), // Country column added
+  currency: text('currency').notNull().default('PKR'), // Currency column added (PKR / AED)
   category: text('category').notNull(),
   status: text('status').default('Active'),
   slug: text('slug').notNull(),
@@ -21,7 +23,7 @@ export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  phone: text('phone').notNull(), // <--- Yeh field add ho gayi hai
+  phone: text('phone').notNull(),
   password: text('password').notNull(),
   createdAt: text('created_at').notNull(),
 });

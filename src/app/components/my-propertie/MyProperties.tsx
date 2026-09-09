@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import Loader from "../shared/Loader";
-import AddPropertyModal from "../property-list/search/AddPropertyModal"; // Apne modal ka path check kar lein
+import AddPropertyModal from "../property-list/search/AddPropertyModal";
 
 interface Property {
   id: string;
@@ -12,24 +11,34 @@ interface Property {
   location: string;
   image: string | null;
   status: "Active" | "Inactive" | "Sold";
+  category: string;
+  tag: string;
+  beds: number;
+  baths: number;
+  garages: number;
 }
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal ke open/close state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
 
-  // Database se real properties fetch karna
+  // Alag-alag filter states
+  const [titleFilter, setTitleFilter] = useState<string>("");
+  const [locationFilter, setLocationFilter] = useState<string>("");
+  const [priceFilter, setPriceFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+
   const fetchProperties = async () => {
     try {
       const storedUser = localStorage.getItem("user");
       const currentUser = storedUser ? JSON.parse(storedUser) : null;
       const userId = currentUser?.id || "1";
 
-      const res = await fetch(`/api/propertydata?userId=${userId}`);
+      const res = await fetch(`/api/properties?userId=${userId}`);
       const result = await res.json();
       
-      // Agar result array hai ya object mein data hai
       const propertyList = Array.isArray(result) ? result : result.data;
       if (propertyList) {
         setProperties(propertyList);
@@ -45,30 +54,12 @@ export default function MyPropertiesPage() {
     fetchProperties();
   }, []);
 
-  // Status Change API Call
-  const handleStatusChange = async (id: string, newStatus: "Active" | "Inactive" | "Sold") => {
-    setProperties((prev) =>
-      prev.map((prop) => (prop.id === id ? { ...prop, status: newStatus } : prop))
-    );
-
-    try {
-      await fetch(`/api/propertydata/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-    } catch (error) {
-      console.error("Error updating status:", error);
-    }
-  };
-
-  // Delete Property API Call
   const handleDelete = async (id: string) => {
     if (confirm("Aap waqai is property ko delete karna chahte hain?")) {
       setProperties((prev) => prev.filter((prop) => prop.id !== id));
 
       try {
-        await fetch(`/api/propertydata?id=${id}`, {
+        await fetch(`/api/properties/${id}`, {
           method: "DELETE",
         });
       } catch (error) {
@@ -76,6 +67,16 @@ export default function MyPropertiesPage() {
       }
     }
   };
+
+  // Alag-alag inputs par filtering logic
+  const filteredProperties = properties.filter((property) => {
+    const matchesTitle = titleFilter === "" || property.property_title?.toLowerCase().includes(titleFilter.toLowerCase());
+    const matchesLocation = locationFilter === "" || property.location?.toLowerCase().includes(locationFilter.toLowerCase());
+    const matchesPrice = priceFilter === "" || property.price?.toString().includes(priceFilter);
+    const matchesStatus = statusFilter === "All" || property.status === statusFilter;
+
+    return matchesTitle && matchesLocation && matchesPrice && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -87,36 +88,93 @@ export default function MyPropertiesPage() {
 
   return (
     <div className="container mx-auto px-4 py-28 max-w-6xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-dark dark:text-white">My Properties</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h1 className="text-2xl font-bold text-black dark:text-white">My Properties</h1>
         
-        {/* Button jo modal ko open karega */}
+        {/* Button: Light mode mein dark (bg-black text-white), Dark mode mein white (dark:bg-white dark:text-black) */}
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          onClick={() => {
+            setEditingProperty(null);
+            setIsModalOpen(true);
+          }}
+          className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm font-medium"
         >
           + Add New Property
         </button>
       </div>
 
-      {properties.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 dark:bg-semidark rounded-xl border border-border dark:border-dark_border">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Aapne abhi tak koi property add nahi ki.</p>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-primary font-medium hover:underline"
+      {/* Har aik ke liye Alag-Alag Input Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white dark:bg-semidark p-4 rounded-xl border border-border dark:border-dark_border shadow-xs">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Title</label>
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={titleFilter}
+            onChange={(e) => setTitleFilter(e.target.value)}
+            className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50 text-black dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Location / City</label>
+          <input
+            type="text"
+            placeholder="Search by city/location..."
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50 text-black dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Price</label>
+          <input
+            type="text"
+            placeholder="Search by price..."
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(e.target.value)}
+            className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50 text-black dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Status</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50 text-black dark:text-white"
           >
-            Pehli property add karein
-          </button>
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Sold">Sold</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredProperties.length === 0 ? (
+        <div className="text-center py-16 bg-gray-50 dark:bg-semidark rounded-xl border border-border dark:border-dark_border">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">Koi property nahi mili.</p>
+          {properties.length === 0 && (
+            <button
+              onClick={() => {
+                setEditingProperty(null);
+                setIsModalOpen(true);
+              }}
+              className="text-primary font-medium hover:underline"
+            >
+              Pehli property add karein
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {properties.map((property) => (
+          {filteredProperties.map((property) => (
             <div
               key={property.id}
               className="flex flex-col md:flex-row items-center justify-between bg-white dark:bg-semidark border border-border dark:border-dark_border p-4 rounded-xl shadow-sm gap-4"
             >
-              {/* Image & Info */}
               <div className="flex items-center space-x-4 w-full md:w-auto">
                 <div className="relative w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
                   <Image
@@ -127,7 +185,7 @@ export default function MyPropertiesPage() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-dark dark:text-white">
+                  <h3 className="text-lg font-semibold text-black dark:text-white">
                     {property.property_title}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{property.location}</p>
@@ -137,16 +195,11 @@ export default function MyPropertiesPage() {
                 </div>
               </div>
 
-              {/* Status Badge & Selector */}
-              <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end">
+              <div className="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-end">
                 <div className="flex flex-col items-start md:items-end">
                   <span className="text-xs text-gray-400 mb-1">Status</span>
-                  <select
-                    value={property.status || "Active"}
-                    onChange={(e) =>
-                      handleStatusChange(property.id, e.target.value as "Active" | "Inactive" | "Sold")
-                    }
-                    className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none ${
+                  <span
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
                       property.status === "Active"
                         ? "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400"
                         : property.status === "Inactive"
@@ -154,20 +207,20 @@ export default function MyPropertiesPage() {
                         : "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-400"
                     }`}
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Sold">Sold</option>
-                  </select>
+                    {property.status || "Active"}
+                  </span>
                 </div>
 
-                {/* Actions: Edit & Delete */}
                 <div className="flex items-center space-x-2">
-                  <Link
-                    href={`/edit-property/${property.id}`}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark_border text-dark dark:text-white rounded-lg hover:bg-gray-200 transition"
+                  <button
+                    onClick={() => {
+                      setEditingProperty(property);
+                      setIsModalOpen(true);
+                    }}
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-dark_border text-black dark:text-white rounded-lg hover:bg-gray-200 transition"
                   >
                     Edit
-                  </Link>
+                  </button>
                   <button
                     onClick={() => handleDelete(property.id)}
                     className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition dark:bg-red-900/20"
@@ -181,12 +234,15 @@ export default function MyPropertiesPage() {
         </div>
       )}
 
-      {/* Add Property Modal Integration */}
       <AddPropertyModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingProperty(null);
+        }}
+        propertyData={editingProperty}
         onSuccess={() => {
-          fetchProperties(); // Property save hone par list dobara fetch hogi
+          fetchProperties();
         }}
       />
     </div>

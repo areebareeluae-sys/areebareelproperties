@@ -36,6 +36,13 @@
       "when": 1788699035770,
       "tag": "0004_jazzy_doctor_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788969503898,
+      "tag": "0005_dapper_spacker_dave",
+      "breakpoints": true
     }
   ]
 }

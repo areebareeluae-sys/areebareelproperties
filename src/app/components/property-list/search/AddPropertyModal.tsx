@@ -2,10 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 
+interface Property {
+  id?: string;
+  property_title: string;
+  price: number | string;
+  location: string;
+  country: string;
+  currency: string;
+  category: string;
+  status: string;
+  tag: string;
+  beds: number;
+  baths: number;
+  garages: number;
+  image?: string | null;
+}
+
 interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  propertyData?: Property | null;
   categories?: string[];
   bedsOptions?: (number | string)[];
   bathsOptions?: (number | string)[];
@@ -16,9 +33,10 @@ export default function AddPropertyModal({
   isOpen,
   onClose,
   onSuccess,
-  categories = ['Apartment', 'Villa', 'Commercial', 'House' , 'Office','Shop', 'Warehouse' ],
+  propertyData = null,
+  categories = ['Apartment', 'Villa', 'Commercial', 'House', 'Office', 'Shop', 'Warehouse'],
   bedsOptions = [1, 2, 3, 4, 5, 6],
-  bathsOptions = [1, 2, 3, 4, 5,6],
+  bathsOptions = [1, 2, 3, 4, 5, 6],
   garagesOptions = [0, 1, 2, 3],
 }: AddPropertyModalProps) {
   const [loading, setLoading] = useState(false);
@@ -29,6 +47,8 @@ export default function AddPropertyModal({
     property_title: '',
     price: '',
     location: '',
+    country: 'Pakistan',
+    currency: 'PKR',
     category: categories[0] || 'Apartment',
     status: 'Active',
     tag: 'For Sale',
@@ -37,10 +57,47 @@ export default function AddPropertyModal({
     garages: Number(garagesOptions[0]) || 0,
   });
 
+  // Jab bhi modal khule ya propertyData change ho, form ko fill karein (Edit or Add)
+  useEffect(() => {
+    if (propertyData) {
+      const propCountry = propertyData.country || 'Pakistan';
+      setFormData({
+        property_title: propertyData.property_title || '',
+        price: propertyData.price ? Number(propertyData.price).toLocaleString() : '',
+        location: propertyData.location || '',
+        country: propCountry,
+        currency: propertyData.currency || (propCountry === 'United Arab Emirates' ? 'AED' : 'PKR'),
+        category: propertyData.category || categories[0],
+        status: propertyData.status || 'Active',
+        tag: propertyData.tag || 'For Sale',
+        beds: Number(propertyData.beds) || 1,
+        baths: Number(propertyData.baths) || 1,
+        garages: Number(propertyData.garages) || 0,
+      });
+      setPreviewUrl(propertyData.image || '');
+    } else {
+      setFormData({
+        property_title: '',
+        price: '',
+        location: '',
+        country: 'Pakistan',
+        currency: 'PKR',
+        category: categories[0] || 'Apartment',
+        status: 'Active',
+        tag: 'For Sale',
+        beds: Number(bedsOptions[0]) || 1,
+        baths: Number(bathsOptions[0]) || 1,
+        garages: Number(garagesOptions[0]) || 0,
+      });
+      setPreviewUrl('');
+      setSelectedFile(null);
+    }
+  }, [propertyData, isOpen]);
+
   // Memory cleanup for image blob URLs
   useEffect(() => {
     return () => {
-      if (previewUrl) {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
       }
     };
@@ -62,6 +119,16 @@ export default function AddPropertyModal({
       return;
     }
 
+    if (name === 'country') {
+      const newCurrency = value === 'Pakistan' ? 'PKR' : 'AED';
+      setFormData((prev) => ({
+        ...prev,
+        country: value,
+        currency: newCurrency,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]:
@@ -74,7 +141,7 @@ export default function AddPropertyModal({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
@@ -87,10 +154,12 @@ export default function AddPropertyModal({
 
     try {
       const data = new FormData();
-      data.append('userId', '1'); // <--- Yahan userId add kar di hai
+      data.append('userId', '1');
       data.append('property_title', formData.property_title);
-      data.append('price', formData.price);
+      data.append('price', formData.price.replace(/,/g, ''));
       data.append('location', formData.location);
+      data.append('country', formData.country);
+      data.append('currency', formData.currency);
       data.append('category', formData.category);
       data.append('status', formData.status);
       data.append('tag', formData.tag);
@@ -102,30 +171,24 @@ export default function AddPropertyModal({
         data.append('image', selectedFile);
       }
 
-      const res = await fetch('/api/propertydata', {
-        method: 'POST',
+      const url = propertyData?.id ? `/api/properties/${propertyData.id}` : '/api/propertydata';
+      const method = propertyData?.id ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
         body: data,
       });
 
       if (res.ok) {
-        setFormData({
-          property_title: '',
-          price: '',
-          location: '',
-          category: categories[0] || 'Apartment',
-          status: 'Active',
-          tag: 'For Sale',
-          beds: Number(bedsOptions[0]) || 1,
-          baths: Number(bathsOptions[0]) || 1,
-          garages: Number(garagesOptions[0]) || 0,
-        });
-        setSelectedFile(null);
-        setPreviewUrl('');
-
         if (onSuccess) onSuccess();
         onClose();
       } else {
-        const errData = await res.json();
+        let errData;
+        try {
+          errData = await res.json();
+        } catch {
+          errData = { message: await res.text() || 'Unknown server error' };
+        }
         console.error('Server error:', errData);
       }
     } catch (error) {
@@ -141,7 +204,7 @@ export default function AddPropertyModal({
         <div className="flex justify-between items-center mb-5 pb-3 border-b border-gray-100 dark:border-dark_border">
           <div>
             <h3 className="text-xl font-bold text-dark dark:text-white">
-              Add New Property
+              {propertyData?.id ? 'Edit Property' : 'Add New Property'}
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
               Fill in the property specifications below
@@ -205,25 +268,25 @@ export default function AddPropertyModal({
             />
           </div>
 
-          {/* Price & Location */}
+          {/* Country & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
-                Price RS
+                Country
               </label>
-              <input
-                required
-                type="text"
-                name="price"
-                placeholder="e.g. 123,113"
-                value={formData.price}
+              <select
+                name="country"
+                value={formData.country}
                 onChange={handleChange}
                 className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
+              >
+                <option value="Pakistan">Pakistan</option>
+                <option value="United Arab Emirates">United Arab Emirates</option>
+              </select>
             </div>
             <div>
               <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
-                Location
+                Location Address
               </label>
               <input
                 required
@@ -237,8 +300,22 @@ export default function AddPropertyModal({
             </div>
           </div>
 
-          {/* Category & Status */}
+          {/* Price & Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
+                Price ({formData.currency})
+              </label>
+              <input
+                required
+                type="text"
+                name="price"
+                placeholder={formData.country === 'Pakistan' ? 'e.g. 15,000,000' : 'e.g. 500,000'}
+                value={formData.price}
+                onChange={handleChange}
+                className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
             <div>
               <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
                 Category
@@ -256,19 +333,23 @@ export default function AddPropertyModal({
                 ))}
               </select>
             </div>
-            <div>
-              <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50"
-              >
-                <option value="Active">Active</option>
-              </select>
-            </div>
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
+              Status
+            </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full p-2.5 text-sm border rounded-lg dark:bg-darkmode dark:border-dark_border focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Sold">Sold</option>
+            </select>
           </div>
 
           {/* Tag & Specs */}
@@ -353,7 +434,7 @@ export default function AddPropertyModal({
               disabled={loading}
               className="bg-primary text-white py-2.5 px-6 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-primary/20"
             >
-              {loading ? 'Adding Property...' : 'Save Property'}
+              {loading ? 'Saving...' : propertyData?.id ? 'Update Property' : 'Save Property'}
             </button>
           </div>
         </form>

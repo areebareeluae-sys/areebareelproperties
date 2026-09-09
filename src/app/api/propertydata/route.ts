@@ -10,7 +10,12 @@ export const dynamic = 'force-dynamic';
 // 1. Fetch All Properties (GET)
 export async function GET() {
   try {
-    const data = await db.select().from(properties);
+    // Sirf wahi properties fetch hongi jinka status 'Active' ho
+    const data = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.status, 'Active'));
+
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error('Fetch Error:', error);
@@ -25,12 +30,15 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-  const userId = (formData.get('userId') as string) || '1';
-    // 1. Pehle ye sari values extract karein
+    const userId = (formData.get('userId') as string) || '1';
+    
+    // 1. Pehle ye sari values extract karein (including country & currency)
     const property_title = (formData.get('property_title') as string) || 'Untitled Property';
-   const rawPrice = (formData.get('price') as string) || '0';
-const price = Number(rawPrice.replace(/,/g, '')) || 0;
+    const rawPrice = (formData.get('price') as string) || '0';
+    const price = Number(rawPrice.replace(/,/g, '')) || 0;
     const location = (formData.get('location') as string) || 'Unspecified Location';
+    const country = (formData.get('country') as string) || 'Pakistan';
+    const currency = (formData.get('currency') as string) || 'PKR';
     const category = (formData.get('category') as string) || 'General';
     const status = (formData.get('status') as string) || 'Active';
     const tag = (formData.get('tag') as string) || 'For Sale';
@@ -66,9 +74,11 @@ const price = Number(rawPrice.replace(/,/g, '')) || 0;
         id: crypto.randomUUID(),
         userId,
         property_title,
-        slug, // <--- ab yahan error nahi aayega kyunki property_title pehle declare ho chuka hai
+        slug,
         price,
         location,
+        country,    // Database mein country save hogi
+        currency,   // Database mein currency (PKR/AED) save hogi
         category,
         status,
         tag,

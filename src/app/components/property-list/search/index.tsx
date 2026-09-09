@@ -11,19 +11,20 @@ import { Filters } from '@/app/types/property/filtertypes';
 interface SearchOption {
     value: string;
     label: string;
+    placeholder?: string;
 }
 
 interface SearchData {
-    keywords?: { placeholder: string }[];
-    locations?: SearchOption[];
-    [key: string]: any;
+    keywords?: SearchOption[];
+    country?: SearchOption[];
+    [key: string]: SearchOption[] | undefined;
 }
 
 export default function AdvanceSearch({ category }: { category?: string }) {
     const [price, setPrice] = useState(50);
     const [price1, setPrice1] = useState(50);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    
+   
     const context = useContext(PropertyContext);
     if (!context) {
         throw new Error('AdvanceSearch must be used within a PropertyContextProvider');
@@ -34,16 +35,16 @@ export default function AdvanceSearch({ category }: { category?: string }) {
     const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
     const [searchData, setSearchData] = useState<SearchData>({});
 
-    // Saari properties bina user filter ke fetch karne ka function
     const loadAllProperties = async () => {
         try {
-            // Yahan koi userId pass nahi ki ja rahi, taake saara data aaye
-            const res = await fetch(`/api/properties`);
+            const res = await fetch(`/api/propertydata`);
             const result = await res.json();
-            
+           
             const propertyList = Array.isArray(result) ? result : result.data;
-            if (propertyList && typeof setProperties === 'function') {
-                setProperties(propertyList);
+            if (propertyList && Array.isArray(propertyList)) {
+                if (typeof setProperties === 'function') {
+                    setProperties(propertyList);
+                }
             } else if (typeof fetchProperties === 'function') {
                 fetchProperties();
             }
@@ -52,7 +53,6 @@ export default function AdvanceSearch({ category }: { category?: string }) {
         }
     };
 
-    // 1. Sync URL category parameter with context filters & load data
     useEffect(() => {
         if (category) {
             updateFilter('category' as keyof Filters, category);
@@ -60,7 +60,6 @@ export default function AdvanceSearch({ category }: { category?: string }) {
         loadAllProperties();
     }, [category]);
 
-    // Fetch page search options
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -102,10 +101,32 @@ export default function AdvanceSearch({ category }: { category?: string }) {
         setIsOffCanvasOpen((prev) => !prev);
     };
 
-    // Memoize sorted properties for performance optimization
     const sortedProperties = useMemo(() => {
-        const propArray = Array.isArray(properties) ? properties : [];
-        return [...propArray].sort((a, b) => {
+        let propArray = Array.isArray(properties) ? [...properties] : [];
+
+        if (filters) {
+            if (filters.category) {
+                propArray = propArray.filter((item: any) =>
+                    item.category?.toLowerCase() === filters.category.toLowerCase()
+                );
+            }
+            if (filters.country) {
+                propArray = propArray.filter((item: any) =>
+                    item.country?.toLowerCase() === filters.country.toLowerCase() ||
+                    item.location?.toLowerCase().includes(filters.country.toLowerCase())
+                );
+            }
+            if (filters.keyword) {
+                const kw = filters.keyword.toLowerCase();
+                propArray = propArray.filter((item: any) =>
+                    item.property_title?.toLowerCase().includes(kw) ||
+                    item.location?.toLowerCase().includes(kw) ||
+                    item.country?.toLowerCase().includes(kw)
+                );
+            }
+        }
+
+        return propArray.sort((a, b) => {
             const titleA = a.property_title?.toLowerCase() || "";
             const titleB = b.property_title?.toLowerCase() || "";
 
@@ -116,9 +137,27 @@ export default function AdvanceSearch({ category }: { category?: string }) {
             }
             return 0;
         });
-    }, [properties, sortOrder]);
+    }, [properties, filters, sortOrder]);
 
     const filteredCount = sortedProperties.length;
+
+    // Reusable Country Dropdown component for both Mobile and Desktop
+    const CountryDropdown = () => (
+        <div className="relative inline-block">
+            <select
+                value={filters?.country || ''}
+                className='custom-select py-3 text-gray dark:text-gray w-full pl-3 pr-9 mr-2 border border-border dark:border-dark_border dark:focus:border-primary dark:bg-semidark rounded-lg focus:border-primary'
+                onChange={(e) => updateFilter('country' as keyof Filters, e.target.value)}
+            >
+                <option value="">Select Country</option>
+                {searchData?.country?.map((countryItem, index) => (
+                    <option key={`country-${index}`} value={countryItem.value}>
+                        {countryItem.label}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
 
     return (
         <>
@@ -129,7 +168,7 @@ export default function AdvanceSearch({ category }: { category?: string }) {
             />
             <section className='dark:bg-darkmode px-4 py-8'>
                 <div className='lg:max-w-screen-xl max-w-screen-md mx-auto'>
-                    
+                   
                     {/* Mobile Top Controls Bar */}
                     <div className='flex lg:hidden justify-between items-center mb-6 px-2'>
                         <span className='text-2xl font-semibold'>Advance Filter</span>
@@ -144,9 +183,9 @@ export default function AdvanceSearch({ category }: { category?: string }) {
 
                     {/* Mobile Off-Canvas Drawer */}
                     <div className={`fixed inset-0 z-50 transition-all duration-300 lg:hidden ${isOffCanvasOpen ? 'visible pointer-events-auto' : 'invisible pointer-events-none'}`}>
-                        <div 
-                            onClick={toggleOffCanvas} 
-                            className={`absolute inset-0 bg-gray-900 transition-opacity duration-300 ${isOffCanvasOpen ? 'opacity-50' : 'opacity-0'}`} 
+                        <div
+                            onClick={toggleOffCanvas}
+                            className={`absolute inset-0 bg-gray-900 transition-opacity duration-300 ${isOffCanvasOpen ? 'opacity-50' : 'opacity-0'}`}
                         />
                         <div className={`absolute top-0 right-0 w-3/4 max-w-xs bg-white dark:bg-semidark shadow-lg h-full overflow-y-auto transition-transform duration-300 transform ${isOffCanvasOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                             <div className='py-14 px-8 relative'>
@@ -158,7 +197,7 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                     {searchData?.keywords?.map((option, index) => (
                                         <div key={`keyword-m-${index}`} className="relative inline-block">
                                             <input
-                                                placeholder={option.placeholder}
+                                                placeholder={option.placeholder || 'Keyword'}
                                                 type='text'
                                                 value={filters?.keyword || ''}
                                                 className='py-3 w-full pl-3 pr-9 border border-border dark:bg-semidark dark:border-dark_border dark:focus:border-primary !rounded-lg focus-visible:outline-none focus:border-primary'
@@ -167,17 +206,8 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                         </div>
                                     ))}
 
-                                    <div className="relative inline-block">
-                                        <select
-                                            value={filters?.location || ''}
-                                            className='custom-select py-3 text-gray dark:text-gray w-full pl-3 pr-9 mr-2 border border-border dark:border-dark_border dark:focus:border-primary dark:bg-semidark rounded-lg focus:border-primary'
-                                            onChange={(e) => updateFilter('location' as keyof Filters, e.target.value)}
-                                        >
-                                            {searchData?.locations?.map((option, index) => (
-                                                <option key={`location-m-${index}`} value={option.value}>{option.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {/* Mobile Country Dropdown from Database */}
+                                    <CountryDropdown />
 
                                     <div>
                                         <p className='text-gray dark:text-gray font-medium'>
@@ -194,14 +224,14 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                     </div>
 
                                     {Object.entries(searchData).map(([key, options]) => (
-                                        key !== 'keywords' && key !== 'locations' && (
+                                        key !== 'keywords' && key !== 'country' && Array.isArray(options) && (
                                             <div key={`m-${key}`} className="relative inline-block">
                                                 <select
                                                     value={(filters as any)[key] || ''}
                                                     className='custom-select py-3 text-gray dark:text-gray w-full pl-3 pr-9 mr-2 border border-border dark:border-dark_border dark:focus:border-primary dark:bg-semidark rounded-lg focus:border-primary'
                                                     onChange={(e) => handleSelectChange(key, e.target.value)}
                                                 >
-                                                    {(options as SearchOption[])?.map((option, index) => (
+                                                    {options.map((option, index) => (
                                                         <option key={`${key}-m-${index}`} value={option.value}>
                                                             {option.label}
                                                         </option>
@@ -226,8 +256,8 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                     </div>
 
                                     <div>
-                                        <button 
-                                            onClick={toggleOffCanvas} 
+                                        <button
+                                            onClick={toggleOffCanvas}
                                             className='bg-blue-500 hover:bg-blue-600 text-white w-full py-3 px-6 text-base rounded-lg transition-colors'
                                         >
                                             Find Property
@@ -247,7 +277,7 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                     {searchData?.keywords?.map((option, index) => (
                                         <div key={`keyword-d-${index}`} className="relative inline-block">
                                             <input
-                                                placeholder={option.placeholder}
+                                                placeholder={option.placeholder || 'Keyword'}
                                                 type='text'
                                                 value={filters?.keyword || ''}
                                                 className='py-3 w-full pl-3 pr-9 border border-border dark:bg-semidark dark:border-dark_border dark:focus:border-primary !rounded-lg focus-visible:outline-none focus:border-primary'
@@ -256,27 +286,18 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                         </div>
                                     ))}
 
-                                    <div className="relative inline-block">
-                                        <select
-                                            value={filters?.location || ''}
-                                            className='custom-select py-3 text-gray dark:text-gray w-full pl-3 pr-9 mr-2 border border-border dark:border-dark_border dark:focus:border-primary dark:bg-semidark rounded-lg focus:border-primary'
-                                            onChange={(e) => updateFilter('location' as keyof Filters, e.target.value)}
-                                        >
-                                            {searchData?.locations?.map((option, index) => (
-                                                <option key={`location-d-${index}`} value={option.value}>{option.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {/* Desktop Country Dropdown from Database */}
+                                    <CountryDropdown />
 
                                     {Object.entries(searchData).map(([key, options]) => (
-                                        key !== 'keywords' && key !== 'locations' && (
+                                        key !== 'keywords' && key !== 'country' && Array.isArray(options) && (
                                             <div key={`d-${key}`} className="relative inline-block">
                                                 <select
                                                     value={(filters as any)[key] || ''}
                                                     className='custom-select py-3 text-gray dark:text-gray w-full pl-3 pr-9 mr-2 border border-border dark:border-dark_border dark:focus:border-primary dark:bg-semidark rounded-lg focus:border-primary'
                                                     onChange={(e) => handleSelectChange(key, e.target.value)}
                                                 >
-                                                    {(options as SearchOption[])?.map((option, index) => (
+                                                    {options.map((option, index) => (
                                                         <option key={`${key}-d-${index}`} value={option.value}>
                                                             {option.label}
                                                         </option>
@@ -297,12 +318,10 @@ export default function AdvanceSearch({ category }: { category?: string }) {
 
                         {/* Main Listings View */}
                         <div className='col-span-12 lg:col-span-8'>
-                            {/* Desktop Header Controls Bar */}
                             <div className="flex lg:flex-nowrap flex-wrap lg:gap-0 gap-6 w-full justify-between items-center pb-8 px-4">
                                 <h5 className='text-xl font-semibold'>{filteredCount} Properties Found</h5>
 
                                 <div className="flex items-center gap-3">
-
                                     <select
                                         name="sort"
                                         className="custom-select border border-border dark:border-dark_border dark:bg-darkmode text-midnight_text focus:border-primary rounded-lg p-2.5 pr-8"
@@ -314,15 +333,15 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                         <option value="desc">Title (Z-A)</option>
                                     </select>
 
-                                    <button 
-                                        onClick={() => setViewMode('list')} 
+                                    <button
+                                        onClick={() => setViewMode('list')}
                                         className={`${viewMode === "list" ? 'bg-primary text-white' : 'bg-transparent text-primary'} p-2.5 border border-primary hover:text-white rounded-lg hover:bg-primary text-base transition-colors`}
                                         aria-label="List View"
                                     >
                                         <Icon icon="famicons:list" width="20" height="20" />
                                     </button>
-                                    <button 
-                                        onClick={() => setViewMode('grid')} 
+                                    <button
+                                        onClick={() => setViewMode('grid')}
                                         className={`${viewMode === "grid" ? 'bg-primary text-white' : 'bg-transparent text-primary'} p-2.5 border border-primary hover:text-white rounded-lg hover:bg-primary text-base transition-colors`}
                                         aria-label="Grid View"
                                     >
@@ -331,7 +350,6 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                                 </div>
                             </div>
 
-                            {/* Property Listings */}
                             {sortedProperties.length > 0 ? (
                                 <div className={`${viewMode === 'grid' ? 'grid sm:grid-cols-2' : 'flex flex-col'} gap-6 px-4`}>
                                     {sortedProperties.map((data: any, index: number) => (
@@ -348,9 +366,6 @@ export default function AdvanceSearch({ category }: { category?: string }) {
                     </div>
                 </div>
             </section>
-
-          
-           
         </>
     );
 }

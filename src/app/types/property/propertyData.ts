@@ -1,9 +1,11 @@
 export type propertyData = {
     id: string;
-    userId: string; // Database field name ke sath match kar diya gaya hai
-    image: string; // Database field name ke sath match kar diya gaya hai
+    userId: string;
+    image: string;
     property_title: string;
     price: string;
+    country: string;   // Country save karne ke liye
+    currency: string;  // Currency (PKR ya AED) save karne ke liye
     category: string;
     category_img: string;
     rooms: number;
