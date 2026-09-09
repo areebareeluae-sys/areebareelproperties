@@ -43,6 +43,20 @@
       "when": 1788969503898,
       "tag": "0005_dapper_spacker_dave",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788976165193,
+      "tag": "0006_fine_expediter",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1788976171973,
+      "tag": "0007_mature_vulture",
+      "breakpoints": true
     }
   ]
 }
