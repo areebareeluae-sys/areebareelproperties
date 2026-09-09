@@ -7,7 +7,6 @@ const headerData = [
     href: "#",
     submenu: [
       { label: "Property List", href: "/properties/properties-list" },
-      { label: "Property Details", href: "/properties/properties-list/modern-apartment" },
     ],
   },
   { label: "Contact", href: "/contact" }

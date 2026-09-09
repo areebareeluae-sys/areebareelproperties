@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788673628364,
+      "tag": "0000_wonderful_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788673731829,
+      "tag": "0001_purple_komodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788679372281,
+      "tag": "0002_cold_korvac",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788680396383,
+      "tag": "0003_lying_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788699035770,
+      "tag": "0004_jazzy_doctor_strange",
+      "breakpoints": true
+    }
+  ]
+}

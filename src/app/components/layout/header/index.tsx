@@ -18,12 +18,10 @@ const Header: React.FC = () => {
   const [user, setUser] = useState<{ user: any } | null>(null);
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
-  const [isSignInOpen, setIsSignInOpen] = useState(false);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown state
 
   const navbarRef = useRef<HTMLDivElement>(null);
-  const signInRef = useRef<HTMLDivElement>(null);
-  const signUpRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Function to handle scroll to set sticky class
@@ -31,13 +29,10 @@ const Header: React.FC = () => {
     setSticky(window.scrollY >= 80);
   };
 
-  // Function to handle click outside
+  // Function to handle click outside to close dropdown and mobile menu
   const handleClickOutside = (event: MouseEvent) => {
-    if (signInRef.current && !signInRef.current.contains(event.target as Node)) {
-      setIsSignInOpen(false);
-    }
-    if (signUpRef.current && !signUpRef.current.contains(event.target as Node)) {
-      setIsSignUpOpen(false);
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsDropdownOpen(false);
     }
     if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node) && navbarOpen) {
       setNavbarOpen(false);
@@ -51,7 +46,7 @@ const Header: React.FC = () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navbarOpen, isSignInOpen, isSignUpOpen]);
+  }, [navbarOpen]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
@@ -80,14 +75,13 @@ const Header: React.FC = () => {
     fetchData()
   }, [])
 
-  console.log("data",data);
-  
-
-
-  const handleSignOut = () => {
+const handleSignOut = () => {
     localStorage.removeItem("user");
+    // Cookie delete karne ke liye:
+    document.cookie = "user=; path=/; max-age=0"; 
     signOut();
     setUser(null);
+    setIsDropdownOpen(false);
   };
 
   return (
@@ -97,7 +91,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md flex items-center justify-between px-4 py-6">
         <Logo />
         <nav className="hidden lg:flex flex-grow items-center justify-center space-x-6">
-          {data.map((item:any, index:any) => (
+          {data.map((item: any, index: any) => (
             <HeaderLink key={index} item={item} />
           ))}
         </nav>
@@ -122,41 +116,72 @@ const Header: React.FC = () => {
           </button>
 
           {user?.user || session?.user ? (
-            <>
-              <div className="relative group flex items-center justify-center">
-                <Image src={"/images/avatar/avatar_1.jpg"} alt="avatar" width={35} height={35} className="rounded-full" />
-                <p
-                  className="absolute w-fit text-sm font-medium text-center z-10 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 bg-primary text-white py-1 px-2 min-w-28 rounded-lg shadow-2xl top-full left-1/2 transform -translate-x-1/2 mt-3"
-                >
-                  {user?.user || session?.user?.name}
-                </p>
-              </div>
+            /* User Avatar with Dropdown Menu */
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => handleSignOut()}
-                className="hidden lg:block bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center space-x-2 focus:outline-none"
               >
-                Sign Out
+                <Image
+                  src={"/images/avatar/avatar_1.jpg"}
+                  alt="avatar"
+                  width={38}
+                  height={38}
+                  className="rounded-full border-2 border-primary"
+                />
               </button>
-            </>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-semidark rounded-lg shadow-xl border border-border dark:border-dark_border py-2 z-50">
+                  <div className="px-4 py-2 border-b border-border dark:border-dark_border mb-1">
+                    <p className="text-sm font-semibold text-dark dark:text-white truncate">
+                      {user?.user || session?.user?.name}
+                    </p>
+                  </div>
+                  
+                  <Link
+                    href="/my-properties"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border transition-colors"
+                  >
+                    My Properties
+                  </Link>
+
+                  <Link
+                    href="/forgot-password"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border transition-colors"
+                  >
+                    Change Password
+                  </Link>
+
+                  <Link
+                    href="/signup"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border transition-colors"
+                  >
+                    Register
+                  </Link>
+
+                  <div className="border-t border-border dark:border-dark_border my-1"></div>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-dark_border transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <>
-              <Link
-                href="/signin"
-                className="hidden lg:block bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white"
-              >
-                Sign In
-              </Link>
-
-              <Link
-                href="/signup"
-                className="hidden lg:block bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Sign Up
-              </Link>
-            </>
+    <Link
+  href="/signin"
+  className="hidden lg:block bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
+>
+  Login
+</Link>
           )}
-
-
 
           <button
             onClick={() => setNavbarOpen(!navbarOpen)}
@@ -192,40 +217,50 @@ const Header: React.FC = () => {
           </button>
         </div>
         <nav className="flex flex-col items-start p-4">
-          {data.map((item:any, index:any) => (
+          {data.map((item: any, index: any) => (
             <MobileHeaderLink key={index} item={item} />
           ))}
-          <div className="mt-4 flex flex-col space-y-4 w-full">
+          <div className="mt-4 flex flex-col space-y-3 w-full">
             {user?.user || session?.user ? (
               <>
-                <button
-                  className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white"
-                  onClick={() => handleSignOut()}
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
                 <Link
-                  href="/signin"
-                  className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white"
-                  onClick={() => {
-                    setNavbarOpen(false);
-                  }}
+                  href="/my-properties"
+                  onClick={() => setNavbarOpen(false)}
+                  className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium"
                 >
-                  Sign In
+                  My Properties
+                </Link>
+                <Link
+                  href="/forgot-password"
+                  onClick={() => setNavbarOpen(false)}
+                  className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium"
+                >
+                  Change Password
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  onClick={() => {
-                    setNavbarOpen(false);
-                  }}
+                  onClick={() => setNavbarOpen(false)}
+                  className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium"
                 >
-                  Sign Up
+                  Register
                 </Link>
+                <button
+                  className="bg-transparent border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white w-full text-center"
+                  onClick={() => handleSignOut()}
+                >
+                  Logout
+                </button>
               </>
+            ) : (
+              <Link
+                href="/signin"
+                className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white text-center"
+                onClick={() => {
+                  setNavbarOpen(false);
+                }}
+              >
+                Sign In
+              </Link>
             )}
           </div>
         </nav>

@@ -1,12 +1,9 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
-import Link from "next/link";
-import { useContext, useState } from "react";
-import SocialSignIn from "../social-button/SocialSignIn";
+import { useState } from "react";
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from "next/navigation";
 import Logo from "../../layout/header/logo";
-
+import Loader from "../../shared/Loader";
 
 const Signin = () => {
   const router = useRouter();
@@ -14,14 +11,13 @@ const Signin = () => {
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
-  }); //login data state
+  });
 
   const [validationErrors, setValidationErrors] = useState({
     email: "",
     password: "",
-  }); //validation state
+  });
 
-  // Input validation function
   const validateForm = () => {
     let errors = { email: "", password: "" };
     let isValid = true;
@@ -45,90 +41,105 @@ const Signin = () => {
     return isValid;
   };
 
-  // form handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
+
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      localStorage.setItem("user", JSON.stringify({ user: loginData.email }));
+      const res = await fetch('/api/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || 'Login fail ho gaya');
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify({ user: data.data.name, email: data.data.email }));
+      document.cookie = "user=true; path=/; max-age=86400"; 
+
+      toast.success('Login successful!');
       router.push("/");
     } catch (error) {
-      alert("Something went wrong. Please try again.");
+      console.error('Signin error:', error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
-    <div className="pt-40 pb-32 bg-light dark:bg-darkmode">
-      <div className="pt-9 flex justify-center items-center text-center ">
-        <div className="max-w-lg w-full bg-white dark:bg-semidark px-8 py-14 sm:px-12 md:px-16 rounded-lg">
-          <div className="mb-10 text-center mx-auto inline-block max-w-[160px]">
+    <div className="pt-40 pb-32 bg-light dark:bg-darkmode min-h-screen flex items-center justify-center">
+      <div className="max-w-md w-full bg-white dark:bg-semidark px-8 py-12 sm:px-10 rounded-xl shadow-xl text-left">
+        <div className="flex flex-col items-center mb-8">
+          <div className="max-w-[140px] w-full mb-3 flex justify-center">
             <Logo />
           </div>
-
-          <SocialSignIn />
-
-          <span className="z-1 relative my-8 block text-center">
-            <span className="-z-1 absolute left-0 top-1/2 block h-px w-full bg-border dark:bg-dark_border"></span>
-            <span className="text-primary/40 dark:text-border relative z-10 inline-block bg-white px-3 text-base dark:bg-semidark">
-              OR
-            </span>
-            <Toaster />
-          </span>
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-[22px]">
-              <input
-                required
-                type="email"
-                placeholder="Email"
-                onChange={(e) =>
-                  setLoginData({ ...loginData, email: e.target.value })
-                }
-                className="w-full rounded-md border placeholder:text-gray-400  border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
-              />
-            </div>
-            <div className="mb-[22px]">
-              <input
-                required
-                type="password"
-                placeholder="Password"
-                onChange={(e) =>
-                  setLoginData({ ...loginData, password: e.target.value })
-                }
-                className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-none transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
-              />
-            </div>
-            <div className="mb-9">
-              <button
-                type="submit"
-                className="flex w-full cursor-pointer items-center justify-center rounded-md border border-primary bg-primary hover:bg-primary/80 dark:hover:!bg-darkprimary px-5 py-3 text-base text-white transition duration-300 ease-in-out "
-              >
-                Sign In
-              </button>
-
-            </div>
-          </form>
-
-          <Link
-            href="/forgot-password"
-            className="mb-2 inline-block text-base text-dark hover:text-primary dark:text-white dark:hover:text-primary"
-          >
-            Forget Password?
-          </Link>
-          <p className="text-body-secondary text-base">
-            Not a member yet?{" "}
-            <Link href="/signup" className="text-body-secondary hover:text-primary">
-              Sign Up
-            </Link>
-          </p>
+          <h2 className="text-2xl font-bold text-dark dark:text-white">
+            SignIn Chiron
+          </h2>
         </div>
+
+        <Toaster />
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+              Email Address
+            </label>
+            <input
+              required
+              type="email"
+              placeholder="name@example.com"
+              value={loginData.email}
+              onChange={(e) =>
+                setLoginData({ ...loginData, email: e.target.value })
+              }
+              className="w-full rounded-md border placeholder:text-gray-400 border-border dark:border-dark_border border-solid bg-transparent px-4 py-3 text-base text-dark outline-none transition focus:border-black dark:text-white dark:focus:border-white"
+            />
+            {validationErrors.email && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+            )}
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+              Password
+            </label>
+            <input
+              required
+              type="password"
+              placeholder="••••••••"
+              value={loginData.password}
+              onChange={(e) =>
+                setLoginData({ ...loginData, password: e.target.value })
+              }
+              className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-4 py-3 text-base text-dark outline-none transition focus:border-black dark:text-white dark:focus:border-white"
+            />
+            {validationErrors.password && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.password}</p>
+            )}
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full cursor-pointer items-center justify-center rounded-md bg-black text-white dark:bg-white dark:text-black hover:opacity-90 px-5 py-3 text-base transition duration-300 ease-in-out font-medium shadow-md"
+            >
+              Login Chiron {loading && <Loader />}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

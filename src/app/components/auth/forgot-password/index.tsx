@@ -1,94 +1,143 @@
 "use client";
 import { useState } from "react";
 import Loader from "../../shared/Loader";
+import { useRouter } from "next/navigation";
 import Logo from "../../layout/header/logo";
 
 const ForgotPassword = () => {
+    const router = useRouter();
     const [email, setEmail] = useState("");
-    const [emailError, setEmailError] = useState("");
+    const [phone, setPhone] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [error, setError] = useState("");
     const [loader, setLoader] = useState(false);
-    const [isEmailSent, setIsEmailSent] = useState(false);
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    // Function to validate email
-    const validateEmail = (value: string) => {
-        if (!value) {
-            setEmailError("Email is required.");
-            return false;
-        }
-        if (!emailRegex.test(value)) {
-            setEmailError("Invalid email format.");
-            return false;
-        }
-        const domain = value.split("@")[1];
-        setEmailError("");
-        return true;
-    };
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateEmail(email)) return;
+        setError("");
+
+        if (!email.trim() || !phone.trim() || !newPassword.trim()) {
+            setError("Fill all the fields");
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            setError("8 characters minimum");
+            return;
+        }
 
         setLoader(true);
-        setTimeout(() => {
+        try {
+            const res = await fetch('/api/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, phone, newPassword }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(data.message || 'invalid Email and Number');
+                setLoader(false);
+                return;
+            }
+
+            setIsSuccess(true);
+            setTimeout(() => {
+                router.push("/signin");
+            }, 2000);
+        } catch (err) {
+            console.error(err);
+            setError("Server Busy");
+        } finally {
             setLoader(false);
-            setIsEmailSent(true);
-        }, 2000);
+        }
     };
 
     return (
-        <div className="flex flex-wrap">
-            <div className="w-full">
-                <div className="">
-                    <div className='mb-10 text-center mx-auto inline-block'>
+        
+            <div className="max-w-md w-full bg-white dark:bg-semidark px-8 py-12 sm:px-10 rounded-xl  text-left">
+                <div className="flex flex-col items-center mb-8">
+                    <div className="max-w-[140px] w-full mb-3 flex justify-center">
                         <Logo />
                     </div>
-
-                    {isEmailSent ? (
-                        <div className="flex flex-col items-center gap-5">
-                            <div className="flex flex-col gap-2">
-                                <h2 className="text-dark dark:text-white text-center text-3xl font-semibold mb-1">
-                                    Forgot Your Password?
-                                </h2>
-                                <p className="text-base text-muted dark:text-white/60 text-center">
-                                    Please check your inbox for the new password.
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-5 text-left">
-                                <input
-                                    type="email"
-                                    placeholder="Email"
-                                    name="email"
-                                    value={email}
-                                    onChange={(e) => {
-                                        setEmail(e.target.value);
-                                        validateEmail(e.target.value);
-                                    }}
-                                    required
-                                    className="w-full rounded-md border border-border dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
-                                />
-                                {emailError && (
-                                    <p className="text-red-500 text-sm mt-1">{emailError}</p>
-                                )}
-                            </div>
-                            <div>
-                                <button
-                                    type="submit"
-                                    className="flex w-full cursor-pointer items-center justify-center rounded-md border border-primary bg-primary hover:bg-primary/75 dark:hover:bg-darkprimary! px-5 py-3 text-base text-white font-medium transition duration-300 ease-in-out"
-                                    disabled={loader}
-                                >
-                                    {loader ? <Loader /> : "Send Email"}
-                                </button>
-                            </div>
-                        </form>
-                    )}
+                    <h2 className="text-2xl font-bold text-dark dark:text-white">
+                        Forgot Your Password?
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-white/60 mt-1 text-center">
+                        Enter your registered Email and Phone number to reset your password.
+                    </p>
                 </div>
+
+                {isSuccess ? (
+                    <div className="flex flex-col items-center gap-2 py-6">
+                        <p className="text-base text-green-600 dark:text-green-400 font-medium text-center">
+                            Change Password successful! Redirecting to signin...
+                        </p>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="text-left">
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                placeholder="name@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="w-full rounded-md border border-border dark:border-dark_border bg-transparent px-4 py-3 text-base text-dark dark:text-white outline-none transition placeholder:text-gray-400 focus:border-black dark:focus:border-white"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+                                Phone Number
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="+1234567890"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                required
+                                className="w-full rounded-md border border-border dark:border-dark_border bg-transparent px-4 py-3 text-base text-dark dark:text-white outline-none transition placeholder:text-gray-400 focus:border-black dark:focus:border-white"
+                            />
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-dark dark:text-white mb-2">
+                                New Password (Min 8 characters)
+                            </label>
+                            <input
+                                type="password"
+                                placeholder="••••••••"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                className="w-full rounded-md border border-border dark:border-dark_border bg-transparent px-4 py-3 text-base text-dark dark:text-white outline-none transition placeholder:text-gray-400 focus:border-black dark:focus:border-white"
+                            />
+                            {error && (
+                                <p className="text-red-500 text-sm mt-1">{error}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <button
+                                type="submit"
+                                disabled={loader}
+                                className="flex w-full cursor-pointer items-center justify-center rounded-md bg-black text-white dark:bg-white dark:text-black hover:opacity-90 px-5 py-3 text-base transition duration-300 ease-in-out font-medium shadow-md"
+                            >
+                                {loader ? <Loader /> : "Reset Password Chiron"}
+                            </button>
+                        </div>
+                    </form>
+                )}
             </div>
-        </div>
+       
     );
 };
 

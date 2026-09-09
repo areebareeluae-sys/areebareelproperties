@@ -35,8 +35,6 @@ export default function Features() {
         return !item.check;
     });
 
-
-
     return (
         <section className='dark:bg-darkmode'>
             <div className="container px-4 lg:max-w-screen-xl md:max-w-screen-md mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -55,7 +53,7 @@ export default function Features() {
                                     <div key={property.id} className="bg-white shadow-lg rounded-t-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
                                         <div className='relative'>
                                             <Image
-                                                src={property.property_img}
+                                                src={property.image || "/uploads/1788676552109-Screenshot_2025-07-07_010304.png"}
                                                 alt="Property Image"
                                                 height={235}
                                                 width={370}
@@ -91,7 +89,7 @@ export default function Features() {
                     <div className='flex-1 '>
                         <div className="lg:pl-20 flex flex-col justify-center h-full">
                             <p className='mb-8 md:mb-3.75 text-4xl font-bold text-midnight_text dark:text-white' data-aos="fade-left">Why People Choose Property</p>
-                            {pageData.map(feature => (
+                            {Array.isArray(pageData) && pageData.map(feature => (
                                 <div key={feature.id} className='flex mb-8 md:mb-3.75 items-center gap-8' data-aos="fade-left" data-aos-delay="100">
                                     <div className="bg-primary/20 p-4 rounded-full flex justify-center items-start">
                                         <Image

@@ -22,7 +22,7 @@ export default function DiscoverProperties() {
                 } else {
                     categoryMap[item.category] = {
                         category: item.category,
-                        category_img: item.category_img,
+                        category_img: item.image || "/images/properties/default.jpg",
                         count: 1,
                     };
                 }

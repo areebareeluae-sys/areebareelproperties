@@ -6,9 +6,9 @@ const Logo: React.FC = () => {
   return (
     <Link href="/">
       <Image
-        src="/images/logo/logo.png"
+        src="/images/logo/logo-dark.png"
         alt="logo"
-        width={55}
+        width={125}
         height={50}
         style={{ width: 'auto', height: 'auto' }}
         quality={100}
@@ -17,7 +17,7 @@ const Logo: React.FC = () => {
       <Image
         src="/images/logo/logo-white.png"
         alt="logo"
-        width={55}
+        width={125}
         height={50}
         style={{ width: 'auto', height: 'auto' }}
         quality={100}
