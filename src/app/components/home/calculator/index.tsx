@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Calculator() {
   const [activeTab, setActiveTab] = useState("sell");
-  const [price, setPrice] = useState(10000);
+  const [price, setPrice] = useState(500000);
 
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
@@ -14,6 +14,8 @@ export default function Calculator() {
   const handlePriceChange = (event: any) => {
     setPrice(event.target.value);
   };
+
+  const formattedPrice = new Intl.NumberFormat().format(price);
 
   return (
     <section className="dark:bg-darkmode">
@@ -29,8 +31,7 @@ export default function Calculator() {
             Save Your Money
           </h2>
           <p className="text-xl text-gray mb-12" data-aos="fade-left">
-            Sometimes by accident, sometimes chunks as necessary making this the
-            first true generator on the Internet.
+            Calculate your property investment savings instantly and maximize your returns with our smart advisory rates.
           </p>
           <div className="relative-container">
             <div className="main-div mb-16 pt-8">
@@ -43,7 +44,7 @@ export default function Calculator() {
                   <p className="text-3xl text-midnight_text dark:text-white">
                     3% Save
                   </p>
-                  <p className="text-gray text-base">Above $50K</p>
+                  <p className="text-gray text-base">Above AED 500K</p>
                 </div>
                 <div
                   className="money-dot relative"
@@ -53,7 +54,7 @@ export default function Calculator() {
                   <p className="text-3xl text-midnight_text dark:text-white">
                     5% Save
                   </p>
-                  <p className="text-gray text-base">Above $75K</p>
+                  <p className="text-gray text-base">Above AED 2M</p>
                 </div>
                 <div
                   className="money-dot relative"
@@ -63,7 +64,7 @@ export default function Calculator() {
                   <p className="text-3xl text-midnight_text dark:text-white">
                     8% Save
                   </p>
-                  <p className="text-gray text-base">Above $90K</p>
+                  <p className="text-gray text-base">Above AED 5M</p>
                 </div>
               </div>
             </div>
@@ -73,13 +74,13 @@ export default function Calculator() {
               href="/properties/properties-list"
               className="text-xl bg-primary py-3 px-8 text-white rounded-lg me-3 mb-2 border border-primary hover:bg-blue-700"
             >
-              Buy House
+              Buy Property
             </Link>
             <Link
               href="/properties/properties-list"
               className="text-xl hover:bg-primary hover:text-white py-3 px-8 text-primary border border-primary rounded-lg me-3 mb-2"
             >
-              Sell House
+              Sell Property
             </Link>
           </div>
         </div>
@@ -116,32 +117,31 @@ export default function Calculator() {
               <p className="text-white flex items-center justify-center font-bold">
                 SAVINGS
               </p>
-              <p className="mb-6 text-white flex items-center justify-center font-bold text-[50px] leading-[1.2]">
-                ${price}
+              <p className="mb-6 text-white flex items-center justify-center font-bold text-[42px] leading-[1.2]">
+                AED {formattedPrice}
               </p>
               <input
                 type="range"
-                min="10000"
-                max="4000000"
-                step=""
+                min="200000"
+                max="10000000"
+                step="50000"
                 value={price}
                 onChange={handlePriceChange}
                 className="w-full h-2 bg-blue-800 rounded-lg appearance-none cursor-pointer "
               />
             </div>
             <div className="flex justify-between text-sm text-white mt-2 font-bold">
-              <p>$10K</p>
-              <p>$400K</p>
+              <p>AED 200K</p>
+              <p>AED 10M</p>
             </div>
           </div>
           <div className="p-4 bg-blue-700 text-white text-xl rounded-b-lg">
             <p className="text-center mb-1 opacity-70">Have Questions?</p>
             <Link
-              href={"tel:+909 887 0980"}
+              href={"tel:+97140000000"}
               className="text-center font-bold inline-block w-full"
             >
-              <span className="opacity-70 !font-normal">Call us : </span>+909
-              887 0980
+              <span className="opacity-70 !font-normal">Call us : </span>+971 4 000 0000
             </Link>
           </div>
         </div>

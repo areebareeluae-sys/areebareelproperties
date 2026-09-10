@@ -2,8 +2,14 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { properties } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +32,7 @@ export async function GET() {
   }
 }
 
-// 2. Create Property with Binary Image (POST)
+// 2. Create Property with Cloudinary Image Upload (POST)
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -55,17 +61,21 @@ export async function POST(req: Request) {
 
     let imagePath = '/images/properties/default.jpg';
 
+    // 3. Local filesystem write ke bajaye Cloudinary par upload karein
     if (imageFile && typeof imageFile !== 'string' && imageFile.size > 0) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      const fileName = `${Date.now()}-${imageFile.name.replace(/\s+/g, '_')}`;
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-
-      await mkdir(uploadDir, { recursive: true });
-      await writeFile(path.join(uploadDir, fileName), buffer);
-
-      imagePath = `/uploads/${fileName}`;
+      imagePath = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'chiron_properties' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result?.secure_url || '/images/properties/default.jpg');
+          }
+        );
+        uploadStream.end(buffer);
+      });
     }
 
     const newProperty = await db
@@ -94,7 +104,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (error) {
-    console.error('Database Error:', error);
+    console.error('Database/Cloudinary Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to insert property' },
       { status: 500 }

@@ -16,8 +16,8 @@ interface Property {
   beds: number;
   baths: number;
   garages: number;
-  country: string;  // Changed from optional to match AddPropertyModal
-  currency: string; // Changed from optional to match AddPropertyModal
+  country: string;
+  currency: string;
 }
 
 export default function MyPropertiesPage() {
@@ -93,7 +93,6 @@ export default function MyPropertiesPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-2xl font-bold text-black dark:text-white">My Properties</h1>
         
-        {/* Button: Light mode mein dark (bg-black text-white), Dark mode mein white (dark:bg-white dark:text-black) */}
         <button
           onClick={() => {
             setEditingProperty(null);
@@ -105,7 +104,7 @@ export default function MyPropertiesPage() {
         </button>
       </div>
 
-      {/* Har aik ke liye Alag-Alag Input Filters */}
+      {/* Input Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white dark:bg-semidark p-4 rounded-xl border border-border dark:border-dark_border shadow-xs">
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Title</label>
@@ -157,7 +156,7 @@ export default function MyPropertiesPage() {
 
       {filteredProperties.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 dark:bg-semidark rounded-xl border border-border dark:border-dark_border">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Koi property nahi mili.</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">no record found</p>
           {properties.length === 0 && (
             <button
               onClick={() => {
@@ -166,7 +165,7 @@ export default function MyPropertiesPage() {
               }}
               className="text-primary font-medium hover:underline"
             >
-              Pehli property add karein
+              Add new Property
             </button>
           )}
         </div>
@@ -178,7 +177,7 @@ export default function MyPropertiesPage() {
               className="flex flex-col md:flex-row items-center justify-between bg-white dark:bg-semidark border border-border dark:border-dark_border p-4 rounded-xl shadow-sm gap-4"
             >
               <div className="flex items-center space-x-4 w-full md:w-auto">
-                <div className="relative w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                <div className="relative w-28 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
                   <Image
                     src={property.image || "/images/placeholder.jpg"}
                     alt={property.property_title}
@@ -187,12 +186,30 @@ export default function MyPropertiesPage() {
                   />
                 </div>
                 <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-md font-medium">
+                      {property.category}
+                    </span>
+                    <span className="text-xs bg-gray-100 dark:bg-dark_border text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-md">
+                      {property.tag}
+                    </span>
+                  </div>
                   <h3 className="text-lg font-semibold text-black dark:text-white">
                     {property.property_title}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{property.location}</p>
-                  <p className="text-primary font-bold mt-1">
-                    RS {Number(property.price).toLocaleString()}
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {property.location}, {property.country}
+                  </p>
+                  
+                  {/* Features (Beds, Baths, Garages) */}
+                  <div className="flex items-center gap-4 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>🛏️ {property.beds} Beds</span>
+                    <span>🛁 {property.baths} Baths</span>
+                    <span>🚗 {property.garages} Garages</span>
+                  </div>
+
+                  <p className="text-primary font-bold mt-1.5">
+                    {property.currency || "PKR"} {Number(property.price).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -228,7 +245,7 @@ export default function MyPropertiesPage() {
                     className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition dark:bg-red-900/20"
                   >
                     Delete
-                  </button>
+                </button>
                 </div>
               </div>
             </div>

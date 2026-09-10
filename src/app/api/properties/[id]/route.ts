@@ -2,8 +2,37 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { properties } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { writeFile, unlink } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper function to extract Cloudinary public ID from URL
+function getPublicIdFromUrl(url: string): string | null {
+  try {
+    // Example URL: https://res.cloudinary.com/y556pcib/image/upload/v1789027488/chiron_properties/qqfkqvki8rxamtj6sngd.jpg
+    const parts = url.split('/');
+    const uploadIndex = parts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+
+    // Skip 'upload' and optional version (e.g., 'v1789027488')
+    let startIndex = uploadIndex + 1;
+    if (parts[startIndex]?.startsWith('v')) {
+      startIndex++;
+    }
+
+    // Join the remaining parts and remove extension
+    const publicIdWithExt = parts.slice(startIndex).join('/');
+    const lastDotIndex = publicIdWithExt.lastIndexOf('.');
+    return lastDotIndex !== -1 ? publicIdWithExt.substring(0, lastDotIndex) : publicIdWithExt;
+  } catch (error) {
+    return null;
+  }
+}
 
 // Status update karne ya Edit Property ke liye (PATCH)
 export async function PATCH(
@@ -13,7 +42,6 @@ export async function PATCH(
   try {
     const { id } = await params;
     
-    // Check karein ke request JSON hai ya FormData
     const contentType = req.headers.get('content-type') || '';
     
     if (contentType.includes('application/json')) {
@@ -30,7 +58,6 @@ export async function PATCH(
       }
     } 
     
-    // Agar AddPropertyModal se FormData aaye (Edit form submit hone par, image ke sath)
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
       const property_title = formData.get('property_title') as string;
@@ -40,14 +67,13 @@ export async function PATCH(
       const currency = (formData.get('currency') as string) || 'PKR';
       const category = (formData.get('category') as string);
       const status = formData.get('status') as string;
-      const tag = formData.get('tag') as string;
+      const tag = (formData.get('tag') as string);
       const beds = Number(formData.get('beds'));
       const baths = Number(formData.get('baths'));
       const garages = Number(formData.get('garages'));
       
       const imageFile = formData.get('image');
 
-      // Update data object with country and currency
       const updateData: any = {
         property_title,
         price,
@@ -64,39 +90,44 @@ export async function PATCH(
 
       // Agar user ne nayi image select ki hai
       if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-        // 1. Pehle database se purani property ki details fetch karein taake purani image ka path mil sake
+        // 1. Pehle database se purani property fetch karein taake purani image ka URL mil sake
         const existingProperty = await db
           .select()
           .from(properties)
           .where(eq(properties.id, id))
           .limit(1);
 
-        // 2. Agar purani image mojood thi, toh usay server se delete karein
         if (existingProperty.length > 0 && existingProperty[0].image) {
-          const oldImagePath = existingProperty[0].image; // Maslan: /uploads/174...jpg
-          // Sirf wahi images delete karein jo local uploads folder mein hain
-          if (oldImagePath.startsWith('/uploads/')) {
-            const fullOldPath = path.join(process.cwd(), 'public', oldImagePath);
+          const oldImageUrl = existingProperty[0].image;
+          const publicId = getPublicIdFromUrl(oldImageUrl);
+          
+          // 2. Agar Cloudinary ki valid image thi toh usay delete kar dein
+          if (publicId) {
             try {
-              await unlink(fullOldPath); // Server se purani file delete ho jayegi
+              await cloudinary.uploader.destroy(publicId);
             } catch (err) {
-              console.log('Purani image delete karne mein error ya file mojood nahi thi:', err);
+              console.error('Purani image Cloudinary se delete karne mein error:', err);
             }
           }
         }
 
-        // 3. Ab nayi image ko save karein
+        // 3. Ab nayi image ko Cloudinary par upload karein
         const bytes = await imageFile.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        const filename = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-        const uploadDir = path.join(process.cwd(), 'public/uploads');
-        
-        try {
-          await writeFile(path.join(uploadDir, filename), buffer);
-          updateData.image = `/uploads/${filename}`;
-        } catch (err) {
-          console.error('Nayi image save karne ka error:', err);
+        const cloudinaryUrl: string = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'chiron_properties' },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result?.secure_url || '');
+            }
+          );
+          uploadStream.end(buffer);
+        });
+
+        if (cloudinaryUrl) {
+          updateData.image = cloudinaryUrl;
         }
       }
 
@@ -116,7 +147,7 @@ export async function PATCH(
   }
 }
 
-// Property delete karne ke liye (DELETE) - Jab poori property delete ho tab bhi image server se hat jaye
+// Property delete karne ke liye (DELETE) - Poori property delete hone par image bhi Cloudinary se remove ho jaye gi
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -124,7 +155,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // 1. Property delete karne se pehle check karein ke uski koi image thi ya nahi
+    // 1. Delete karne se pehle image ka URL nikal lein
     const existingProperty = await db
       .select()
       .from(properties)
@@ -132,18 +163,17 @@ export async function DELETE(
       .limit(1);
 
     if (existingProperty.length > 0 && existingProperty[0].image) {
-      const oldImagePath = existingProperty[0].image;
-      if (oldImagePath.startsWith('/uploads/')) {
-        const fullOldPath = path.join(process.cwd(), 'public', oldImagePath);
+      const publicId = getPublicIdFromUrl(existingProperty[0].image);
+      if (publicId) {
         try {
-          await unlink(fullOldPath); // Poori property delete hone par image bhi server se delete
+          await cloudinary.uploader.destroy(publicId);
         } catch (err) {
-          console.log('Image delete error:', err);
+          console.error('Cloudinary image delete error:', err);
         }
       }
     }
 
-    // 2. Database se property record delete karein
+    // 2. Database se record delete karein
     await db
       .delete(properties)
       .where(eq(properties.id, id));
