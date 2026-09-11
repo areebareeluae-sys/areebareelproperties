@@ -20,7 +20,7 @@ const Location = () => {
                     </div>
                     <div className="col-span-3">
                         <Link href="mailto:headoffice@property.com" className="text-xl text-white font-medium underline">info@chironproperties.com</Link>
-                        <Link href="tel:731-621-5503" className="text-xl text-white text-opacity-80 flex items-center gap-2 hover:text-opacity-100 w-fit"><span className="text-white !text-opacity-40">Call</span>731-621-5503</Link>
+                        <Link href="tel:731-621-5503" className="text-xl text-white text-opacity-80 flex items-center gap-2 hover:text-opacity-100 w-fit"><span className="text-white !text-opacity-40">Call</span>+92 348 2107363</Link>
                     </div>
                 </div>
                 <div className="grid md:grid-cols-6 lg:grid-cols-9 grid-cols-1 gap-7 pt-12">
@@ -32,7 +32,7 @@ const Location = () => {
                     </div>
                     <div className="col-span-3">
                         <Link href="mailto:Office@property.com" className="text-xl text-white font-medium underline">info@chironproperties.com</Link>
-                        <Link href="tel:731-235-7993" className="text-xl text-white text-opacity-80 text-IceBlue flex items-center gap-2 hover:text-opacity-100 w-fit"><span className="text-white !text-opacity-40">Call</span>731-235-7993</Link>
+                        <Link href="tel:731-235-7993" className="text-xl text-white text-opacity-80 text-IceBlue flex items-center gap-2 hover:text-opacity-100 w-fit"><span className="text-white !text-opacity-40">Call</span>+92 348 2107363</Link>
                     </div>
                 </div>
             </div>
