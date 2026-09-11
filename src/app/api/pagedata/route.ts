@@ -56,7 +56,7 @@ const searchOptions: SearchOptions = {
     ],
     category: [
         { value: '', label: 'Category' },
-        { value: 'apartment', label: 'Apartment' },
+        { value: 'Studio apartment', label: 'Studio Apartment' },
         { value: 'villa', label: 'Villa' },
         { value: 'office', label: 'Office' },
         { value: 'shop', label: 'Shop' },
@@ -65,6 +65,7 @@ const searchOptions: SearchOptions = {
     ],
     beds: [
         { value: '', label: 'Beds' },
+        { value: '0', label: ' 0 Beds' },
         { value: '1', label: '1 Bed' },
         { value: '2', label: '2 Beds' },
         { value: '3', label: '3 Beds' },
@@ -73,6 +74,7 @@ const searchOptions: SearchOptions = {
     ],
     garages: [
         { value: '', label: 'Garages' },
+         { value: '0', label: '0 Garages' },
         { value: '1', label: '1 Garage' },
         { value: '2', label: '2 Garages' },
     ],

@@ -5,13 +5,12 @@ import React, { useEffect, useState } from 'react';
 export default function Features() {
     const [propertiesData, setPropertiesData] = useState<any[]>([]);
 
-    // Aapki company ki real services ka professional text
     const companyFeatures = [
         {
             id: 1,
             title: "Verified Property Listings",
             description: "100% legally verified residential and commercial properties with transparent documentation.",
-            imgSrc: "/images/features/feature_icon1.svg" // Agar image path mein issue ho toh placeholder ya icon use kar sakte hain
+            imgSrc: "/images/features/feature_icon1.svg"
         },
         {
             id: 2,
@@ -47,6 +46,9 @@ export default function Features() {
         return !item.check;
     });
 
+    // Pehli available property ko select karna floating card ke liye
+    const featuredProperty = value.length > 0 ? value[0] : null;
+
     return (
         <section className='dark:bg-darkmode py-16'>
             <div className="container px-4 lg:max-w-screen-xl md:max-w-screen-md mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -61,44 +63,48 @@ export default function Features() {
                                 style={{ width: "100%", height: "auto" }}
                                 className="rounded-2xl"
                             />
-                            <div className="lg:max-w-96 max-w-37.5 absolute bottom-0 mx-auto left-0 right-0 lg:mr-3.75">
-                                {value.map(property => (
-                                    <div key={property.id} className="bg-white shadow-2xl rounded-t-xl overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-                                        <div className='relative'>
-                                            <Image
-                                                src={property.image || "/uploads/1788676552109-Screenshot_2025-07-07_010304.png"}
-                                                alt="Featured Property"
-                                                height={235}
-                                                width={370}
-                                                style={{ width: '100%', height: 'auto' }}
-                                            />
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className='absolute top-[10px] right-[10px] bg-white p-2 rounded-lg shadow-md'
-                                                viewBox="0 0 24 24"
-                                                width="38"
-                                                height="38"
-                                                fill="#2F73F2"
-                                            >
-                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                            </svg>
+                            
+                            {/* Floating Single Property Card */}
+                            {featuredProperty && (
+                                <div className="lg:max-w-[340px] w-[90%] absolute -bottom-8 left-4 lg:left-6 mx-auto bg-white dark:bg-[#111929] shadow-2xl rounded-xl overflow-hidden border border-gray-100 dark:border-dark_border" data-aos="fade-up" data-aos-delay="100">
+                                    <div className='relative h-[180px] w-full'>
+                                        <Image
+                                            src={featuredProperty.image || "/uploads/1788676552109-Screenshot_2025-07-07_010304.png"}
+                                            alt="Featured Property"
+                                            fill
+                                            className='object-cover'
+                                        />
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className='absolute top-[10px] right-[10px] bg-white p-2 rounded-lg shadow-md cursor-pointer'
+                                            viewBox="0 0 24 24"
+                                            width="36"
+                                            height="36"
+                                            fill="#2F73F2"
+                                        >
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                        </svg>
+                                    </div>
+                                    <div className="p-4">
+                                        <div className="flex dark:text-gray justify-between items-center mb-1">
+                                            <div className="font-bold text-xl text-primary">
+                                                {featuredProperty.currency || "PKR"} {Number(featuredProperty.price).toLocaleString()}
+                                            </div>
+                                            <div className='text-xs bg-herobg dark:bg-white dark:text-blue-500 py-1.5 px-3 rounded-lg font-bold truncate max-w-[120px]'>
+                                                {featuredProperty.location}
+                                            </div>
                                         </div>
-                                        <div className="p-4 dark:bg-[#111929]">
-                                            <div className="flex dark:text-gray justify-between items-center mb-1">
-                                                <div className="font-bold text-2xl text-primary">{property.property_price}</div>
-                                                <div className='text-xs bg-herobg dark:bg-white dark:text-blue-500 py-2 px-4 rounded-lg font-bold'>
-                                                    {property.location}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray font-medium truncate">{property.property_title}</p>
-                                            </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600 dark:text-gray-300 font-medium truncate">
+                                                {featuredProperty.property_title}
+                                            </p>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     </div>
+
                     <div className='flex-1 w-full'>
                         <div className="lg:pl-16 flex flex-col justify-center h-full">
                             <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md w-max mb-3">

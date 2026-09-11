@@ -35,9 +35,9 @@ export default function AddPropertyModal({
   onClose,
   onSuccess,
   propertyData = null,
-  categories = ['Apartment', 'Villa', 'Commercial', 'House', 'Office', 'Shop', 'Warehouse'],
-  bedsOptions = [1, 2, 3, 4, 5, 6],
-  bathsOptions = [1, 2, 3, 4, 5, 6],
+  categories = ['Studio Apartment' ,'Apartment','Villa', 'Commercial', 'House', 'Office', 'Shop', 'Warehouse'],
+  bedsOptions = [0,1, 2, 3, 4, 5, 6],
+  bathsOptions = [0,1, 2, 3, 4, 5, 6],
   garagesOptions = [0, 1, 2, 3],
 }: AddPropertyModalProps) {
   const [loading, setLoading] = useState(false);
