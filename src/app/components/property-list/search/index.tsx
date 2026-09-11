@@ -163,7 +163,7 @@ export default function AdvanceSearch({ category }: { category?: string }) {
         <>
             <HeroSub
                 title={filters?.category || "Properties List"}
-                description="Letraset sheets containing Lorem Ipsum passages and more recently with desktop publishing Variou"
+                description=""
                 breadcrumbLinks={breadcrumbLinks}
             />
             <section className='dark:bg-darkmode px-4 py-8'>

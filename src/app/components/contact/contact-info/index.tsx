@@ -17,7 +17,7 @@ const ContactInfo = () => {
                     Email Us
                   </span>
                   <p className="text-midnight_text/70 font-normal text-xl max-w-80 pt-3 pb-7 dark:text-gray">
-                    Feel free to contact us at info@propertypro.com we’ll respond promptly
+                    Feel free to contact us at info@chironproperties.com we’ll respond promptly
                   </p>
                 </div>
               </div>
@@ -32,14 +32,11 @@ const ContactInfo = () => {
                     Address
                   </span>
                   <p className="text-midnight_text/70 font-normal text-xl max-w-80 pt-3 pb-7 dark:text-gray">
-                    221b Baker St, London NW1 6XE, United Kingdom
+                    Chiron Properties United Arab Emirates (UAE)
                   </p>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="md:pt-32 pt-11 md:pb-28 pb-8">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d938779.7831767448!2d71.05098621661072!3d23.20271516446136!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e82dd003ff749%3A0x359e803f537cea25!2sGANESH%20GLORY%2C%20Gota%2C%20Ahmedabad%2C%20Gujarat%20382481!5e0!3m2!1sen!2sin!4v1715676641521!5m2!1sen!2sin" width="1114" height="477" loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="rounded-lg w-full"></iframe>
           </div>
         </div>
         <div className="border-b border-solid border-border dark:border-dark_border"></div>

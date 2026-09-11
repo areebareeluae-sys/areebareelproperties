@@ -101,20 +101,20 @@ const ContactForm = () => {
                     />
                   </div>
                   <div className="mx-0 my-2.5 flex-1">
-                    <label htmlFor="Specialist" className="pb-3 inline-block text-17">Specialist*</label>
+                    <label htmlFor="Specialist" className="pb-3 inline-block text-17">Requairment*</label>
                     <select  
                     name="specialist"
                       id="specialist"
                       value={formData.specialist}
                       onChange={handleChange} className="custom-select w-full text-17 px-4 py-2.5 rounded-lg border-border dark:text-white border-solid dark:bg-darkmode border transition-all duration-500 focus:border-primary dark:focus:border-primary dark:border-dark_border focus:border-solid focus:outline-0">
-                      <option value="">Choose a specialist</option>
+                      <option value="">Choose a Requairment</option>
                       <option value="Baking &amp; Pastry">
-                        Choose a specialist
+                        Shop
                       </option>
-                      <option value="Exotic Cuisine">Exotic Cuisine</option>
-                      <option value="French Desserts">French Desserts</option>
+                      <option value="Exotic Cuisine">Office</option>
+                      <option value="French Desserts">Land</option>
                       <option value="Seafood &amp; Wine">
-                        Choose a specialist
+                        House
                       </option>
                     </select>
                   </div>

@@ -15,8 +15,8 @@ const Footer = () => {
               <Image
                 src="/images/logo/logo-white.png"
                 alt="logo"
-                width={65}
-                height={38}
+                width={200}
+                height={50}
               />
             </Link>
           </div>
@@ -26,8 +26,7 @@ const Footer = () => {
                 Address
               </h4>
               <p className="mb-6 text-gray text-base">
-                Property Real estate 4263 Wilkinson Street Tennessee
-              </p>
+               Chiron Properties United Arab Emirates (UAE) </p>
               <div className="flex items-center gap-2">
                 <a
                   aria-label="social link"
@@ -95,11 +94,6 @@ const Footer = () => {
                     Properties
                   </Link>
                 </li>
-                <li>
-                  <Link href="/blogs" className="mb-3 inline-block text-base text-gray hover:text-white">
-                    Blog
-                  </Link>
-                </li>
               </ul>
             </div>
             <div className="w-full lg:col-span-4 col-span-12">
@@ -108,22 +102,22 @@ const Footer = () => {
               </h4>
               <ul>
                 <li onClick={() => updateFilter('category', 'apartment')}>
-                  <Link href="/properties/properties-list?category=apartment" className="mb-3 inline-block text-base text-gray hover:text-white">
+                  <Link href="/properties/properties-list" className="mb-3 inline-block text-base text-gray hover:text-white">
                     Apartment for Rent
                   </Link>
                 </li>
                 <li onClick={() => updateFilter('category', 'house')}>
-                  <Link href="/properties/properties-list?category=house" className="mb-3 inline-block text-base text-gray hover:text-white">
+                  <Link href="/properties/properties-list" className="mb-3 inline-block text-base text-gray hover:text-white">
                     House for Buy
                   </Link>
                 </li>
                 <li onClick={() => updateFilter('category', 'office')}>
-                  <Link href="/properties/properties-list?category=office" className="mb-3 inline-block text-base text-gray hover:text-white">
+                  <Link href="/properties/properties-list" className="mb-3 inline-block text-base text-gray hover:text-white">
                     Offices for Buy
                   </Link>
                 </li>
                 <li onClick={() => updateFilter('category', 'shop')}>
-                  <Link href="/properties/properties-list?category=shop" className="mb-3 inline-block text-base text-gray hover:text-white">
+                  <Link href="/properties/properties-list" className="mb-3 inline-block text-base text-gray hover:text-white">
                     Shop for Rent
                   </Link>
                 </li>
@@ -138,11 +132,11 @@ const Footer = () => {
             <div className="flex lg:flex-nowrap flex-wrap lg:flex-row lg:gap-11 gap-4 text-base sm:text-lg md:text-xl text-black text-opacity-50">
               <p className="text-white">
                 Phone :
-                <Link href="#" className="text-gray hover:text-white"> +(690) 2560 0020</Link>
+                <Link href="#" className="text-gray hover:text-white"> +92 348 2107363</Link>
               </p>
               <p className="text-white">
                 Email :
-                <Link href="#" className="text-gray hover:text-white"> real@property.com</Link>
+                <Link href="#" className="text-gray hover:text-white"> info@chironproperties.com</Link>
               </p>
             </div>
           </div>
