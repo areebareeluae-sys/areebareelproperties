@@ -5,8 +5,8 @@ export const properties = sqliteTable('properties', {
   userId: text('user_id').notNull(),
   property_title: text('property_title').notNull(),
   location: text('location').notNull(),
-  country: text('country').notNull().default('Pakistan'), // Country column added
-  currency: text('currency').notNull().default('PKR'), // Currency column added (PKR / AED)
+  country: text('country').notNull().default('Pakistan'),
+  currency: text('currency').notNull().default('PKR'),
   category: text('category').notNull(),
   status: text('status').default('Active'),
   slug: text('slug').notNull(),
@@ -16,6 +16,7 @@ export const properties = sqliteTable('properties', {
   baths: integer('baths').notNull().default(0),
   garages: integer('garages').notNull().default(0),
   image: text('image'), 
+  images: text('images'), // Multiple images album array store karne ke liye naya column
   createdAt: text('created_at').default(new Date().toISOString()),
 });
 

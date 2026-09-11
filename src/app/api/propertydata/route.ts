@@ -16,7 +16,6 @@ export const dynamic = 'force-dynamic';
 // 1. Fetch All Properties (GET)
 export async function GET() {
   try {
-    // Sirf wahi properties fetch hongi jinka status 'Active' ho
     const data = await db
       .select()
       .from(properties)
@@ -32,51 +31,37 @@ export async function GET() {
   }
 }
 
-// 2. Create Property with Cloudinary Image Upload (POST)
+// 2. Create Property with JSON & Multiple Images Array (POST)
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
-    const userId = (formData.get('userId') as string) || '1';
+    // Frontend se JSON body aa rahi hai
+    const body = await req.json();
     
-    // 1. Pehle ye sari values extract karein (including country & currency)
-    const property_title = (formData.get('property_title') as string) || 'Untitled Property';
-    const rawPrice = (formData.get('price') as string) || '0';
+    const userId = body.userId || '1';
+    const property_title = body.property_title || 'Untitled Property';
+    const rawPrice = body.price ? String(body.price) : '0';
     const price = Number(rawPrice.replace(/,/g, '')) || 0;
-    const location = (formData.get('location') as string) || 'Unspecified Location';
-    const country = (formData.get('country') as string) || 'Pakistan';
-    const currency = (formData.get('currency') as string) || 'PKR';
-    const category = (formData.get('category') as string) || 'General';
-    const status = (formData.get('status') as string) || 'Active';
-    const tag = (formData.get('tag') as string) || 'For Sale';
-    const beds = Number(formData.get('beds')) || 0;
-    const baths = Number(formData.get('baths')) || 0;
-    const garages = Number(formData.get('garages')) || 0;
-    const imageFile = formData.get('image') as File | null;
+    const location = body.location || 'Unspecified Location';
+    const country = body.country || 'Pakistan';
+    const currency = body.currency || 'PKR';
+    const category = body.category || 'General';
+    const status = body.status || 'Active';
+    const tag = body.tag || 'For Sale';
+    const beds = Number(body.beds) || 0;
+    const baths = Number(body.baths) || 0;
+    const garages = Number(body.garages) || 0;
+    
+    // Multiple images ya single image array
+    const imageInput = body.image || '';
+    const imagesArray: string[] = Array.isArray(body.images) ? body.images : (imageInput ? [imageInput] : []);
 
-    // 2. Phir property_title ke baad slug banayein
+    // Slug generation
     const slug = property_title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
 
-    let imagePath = '/images/properties/default.jpg';
-
-    // 3. Local filesystem write ke bajaye Cloudinary par upload karein
-    if (imageFile && typeof imageFile !== 'string' && imageFile.size > 0) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      imagePath = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          { folder: 'chiron_properties' },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result?.secure_url || '/images/properties/default.jpg');
-          }
-        );
-        uploadStream.end(buffer);
-      });
-    }
+    const primaryImage = imagesArray.length > 0 ? imagesArray[0] : '/images/properties/default.jpg';
 
     const newProperty = await db
       .insert(properties)
@@ -87,15 +72,17 @@ export async function POST(req: Request) {
         slug,
         price,
         location,
-        country,    // Database mein country save hogi
-        currency,   // Database mein currency (PKR/AED) save hogi
+        country,
+        currency,
         category,
         status,
         tag,
         beds,
         baths,
         garages,
-        image: imagePath,
+        image: primaryImage,
+        // Agar aapke Drizzle schema mein 'images' column mojood hai toh usay JSON ya stringify kar ke save karein:
+        images: JSON.stringify(imagesArray), 
         createdAt: new Date().toISOString(),
       })
       .returning();

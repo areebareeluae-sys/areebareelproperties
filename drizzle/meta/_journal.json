@@ -57,6 +57,13 @@
       "when": 1788976171973,
       "tag": "0007_mature_vulture",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1789122086284,
+      "tag": "0008_lazy_warstar",
+      "breakpoints": true
     }
   ]
 }

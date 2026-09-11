@@ -16,6 +16,7 @@ interface Property {
   baths: number;
   garages: number;
   image?: string | null;
+  images?: string[]; // Multiple images ke liye array
 }
 
 interface AddPropertyModalProps {
@@ -40,8 +41,9 @@ export default function AddPropertyModal({
   garagesOptions = [0, 1, 2, 3],
 }: AddPropertyModalProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     property_title: '',
@@ -57,7 +59,6 @@ export default function AddPropertyModal({
     garages: Number(garagesOptions[0]) || 0,
   });
 
-  // Jab bhi modal khule ya propertyData change ho, form ko fill karein (Edit or Add)
   useEffect(() => {
     if (propertyData) {
       const propCountry = propertyData.country || 'Pakistan';
@@ -74,7 +75,9 @@ export default function AddPropertyModal({
         baths: Number(propertyData.baths) || 1,
         garages: Number(propertyData.garages) || 0,
       });
-      setPreviewUrl(propertyData.image || '');
+      // Agar purani images hain toh unhein preview mein dikhayein
+      const existingImgs = propertyData.images || (propertyData.image ? [propertyData.image] : []);
+      setPreviewUrls(existingImgs);
     } else {
       setFormData({
         property_title: '',
@@ -89,19 +92,10 @@ export default function AddPropertyModal({
         baths: Number(bathsOptions[0]) || 1,
         garages: Number(garagesOptions[0]) || 0,
       });
-      setPreviewUrl('');
-      setSelectedFile(null);
+      setPreviewUrls([]);
+      setSelectedFiles([]);
     }
   }, [propertyData, isOpen]);
-
-  // Memory cleanup for image blob URLs
-  useEffect(() => {
-    return () => {
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
 
   if (!isOpen) return null;
 
@@ -138,12 +132,16 @@ export default function AddPropertyModal({
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+  // Multiple Image Selection & Preview Handler
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files);
+      setSelectedFiles(fileArray);
+
+      // Temporary browser preview URLs generate karein
+      const newPreviews = fileArray.map((file) => URL.createObjectURL(file));
+      setPreviewUrls(newPreviews);
     }
   };
 
@@ -153,30 +151,66 @@ export default function AddPropertyModal({
     setLoading(true);
 
     try {
-      const data = new FormData();
-      data.append('userId', '1');
-      data.append('property_title', formData.property_title);
-      data.append('price', formData.price.replace(/,/g, ''));
-      data.append('location', formData.location);
-      data.append('country', formData.country);
-      data.append('currency', formData.currency);
-      data.append('category', formData.category);
-      data.append('status', formData.status);
-      data.append('tag', formData.tag);
-      data.append('beds', String(formData.beds));
-      data.append('baths', String(formData.baths));
-      data.append('garages', String(formData.garages));
+      const cloudName = "y556pcib"; 
+      const uploadPreset = "real_estate_albums"; // Cloudinary par yeh unsigned preset lazmi banayein
+      const uploadedImageUrls: string[] = [];
 
-      if (selectedFile) {
-        data.append('image', selectedFile);
+      // STEP 1: Agar nayi images select ki hain, toh unhein direct Cloudinary par upload karein
+      if (selectedFiles.length > 0) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          setUploadProgress(`Uploading image ${i + 1} of ${selectedFiles.length}...`);
+          const file = selectedFiles[i];
+          const cloudFormData = new FormData();
+          cloudFormData.append('file', file);
+          cloudFormData.append('upload_preset', uploadPreset);
+
+          const cloudRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            {
+              method: 'POST',
+              body: cloudFormData,
+            }
+          );
+
+          const cloudData = await cloudRes.json();
+          if (cloudData.secure_url) {
+            uploadedImageUrls.push(cloudData.secure_url);
+          } else {
+            console.error('Cloudinary error for file:', file.name, cloudData);
+          }
+        }
+      } else {
+        // Agar nayi select nahi ki aur purani mojood hain toh wohi use karein
+        uploadedImageUrls.push(...previewUrls);
       }
+
+      setUploadProgress('Saving property details...');
+
+      // STEP 2: Ab final data aur image URLs (album) ko apne backend API par bhein
+      const finalPayload = {
+        userId: '1',
+        property_title: formData.property_title,
+        price: formData.price.replace(/,/g, ''),
+        location: formData.location,
+        country: formData.country,
+        currency: formData.currency,
+        category: formData.category,
+        status: formData.status,
+        tag: formData.tag,
+        beds: formData.beds,
+        baths: formData.baths,
+        garages: formData.garages,
+        image: uploadedImageUrls[0] || '', // Pehli image main thumbnail ke tor par
+        images: uploadedImageUrls,         // Poora album array
+      };
 
       const url = propertyData?.id ? `/api/properties/${propertyData.id}` : '/api/propertydata';
       const method = propertyData?.id ? 'PATCH' : 'POST';
 
       const res = await fetch(url, {
         method: method,
-        body: data,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalPayload),
       });
 
       if (res.ok) {
@@ -195,6 +229,7 @@ export default function AddPropertyModal({
       console.error('Failed to submit:', error);
     } finally {
       setLoading(false);
+      setUploadProgress('');
     }
   };
 
@@ -204,10 +239,10 @@ export default function AddPropertyModal({
         <div className="flex justify-between items-center mb-5 pb-3 border-b border-gray-100 dark:border-dark_border">
           <div>
             <h3 className="text-xl font-bold text-dark dark:text-white">
-              {propertyData?.id ? 'Edit Property' : 'Add New Property'}
+              {propertyData?.id ? 'Edit Property Album' : 'Add Property & Album'}
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Fill in the property specifications below
+              Upload multiple photos and fill specifications
             </p>
           </div>
           <button
@@ -220,34 +255,41 @@ export default function AddPropertyModal({
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Image Upload Area */}
+          {/* Multiple Image Album Upload Area */}
           <div>
             <label className="text-sm font-semibold block mb-1.5 text-gray-700 dark:text-gray-300">
-              Property Image
+              Property Album Images (Multiple)
             </label>
             <div className="flex items-center gap-4">
               <label className="flex-1 cursor-pointer border-2 border-dashed border-gray-300 dark:border-dark_border rounded-xl p-4 text-center hover:border-primary transition-colors bg-gray-50/50 dark:bg-darkmode/50">
                 <span className="text-sm text-primary font-medium block">
-                  Choose Image File
+                  Choose Photo Album
                 </span>
                 <span className="text-xs text-gray-400 mt-1 block">
-                  PNG, JPG, WEBP up to 10MB
+                  Select multiple PNG, JPG, WEBP files
                 </span>
                 <input
                   type="file"
+                  multiple
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={handleImagesChange}
                   className="hidden"
                 />
               </label>
             </div>
-            {previewUrl && (
-              <div className="mt-3 h-32 w-full relative rounded-xl overflow-hidden border border-gray-200 dark:border-dark_border shadow-inner">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
+
+            {/* Album Previews */}
+            {previewUrls.length > 0 && (
+              <div className="mt-3 grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1 border border-gray-200 dark:border-dark_border rounded-xl">
+                {previewUrls.map((url, idx) => (
+                  <div key={idx} className="h-20 relative rounded-lg overflow-hidden border shadow-sm">
+                    <img
+                      src={url}
+                      alt={`Album Preview ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -421,6 +463,13 @@ export default function AddPropertyModal({
             </div>
           </div>
 
+          {/* Upload Progress Status Text */}
+          {uploadProgress && (
+            <p className="text-xs text-primary font-semibold text-center mt-1 animate-pulse">
+              {uploadProgress}
+            </p>
+          )}
+
           <div className="mt-4 pt-3 border-t border-gray-100 dark:border-dark_border flex gap-3 justify-end">
             <button
               type="button"
@@ -434,7 +483,7 @@ export default function AddPropertyModal({
               disabled={loading}
               className="bg-primary text-white py-2.5 px-6 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-primary/20"
             >
-              {loading ? 'Saving...' : propertyData?.id ? 'Update Property' : 'Save Property'}
+              {loading ? 'Processing...' : propertyData?.id ? 'Update Property' : 'Save Property'}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@ export type propertyData = {
     id: string;
     userId: string;
     image: string;
+    images?: string[];     // Multiple images / album array ke liye naya field
     property_title: string;
     price: string;
     country: string;   // Country save karne ke liye

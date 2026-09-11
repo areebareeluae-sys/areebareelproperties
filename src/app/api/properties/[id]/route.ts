@@ -14,18 +14,15 @@ cloudinary.config({
 // Helper function to extract Cloudinary public ID from URL
 function getPublicIdFromUrl(url: string): string | null {
   try {
-    // Example URL: https://res.cloudinary.com/y556pcib/image/upload/v1789027488/chiron_properties/qqfkqvki8rxamtj6sngd.jpg
     const parts = url.split('/');
     const uploadIndex = parts.indexOf('upload');
     if (uploadIndex === -1) return null;
 
-    // Skip 'upload' and optional version (e.g., 'v1789027488')
     let startIndex = uploadIndex + 1;
     if (parts[startIndex]?.startsWith('v')) {
       startIndex++;
     }
 
-    // Join the remaining parts and remove extension
     const publicIdWithExt = parts.slice(startIndex).join('/');
     const lastDotIndex = publicIdWithExt.lastIndexOf('.');
     return lastDotIndex !== -1 ? publicIdWithExt.substring(0, lastDotIndex) : publicIdWithExt;
@@ -34,120 +31,95 @@ function getPublicIdFromUrl(url: string): string | null {
   }
 }
 
-// Status update karne ya Edit Property ke liye (PATCH)
+// Property Update / Edit ya Status change karne ke liye (PATCH)
+// Property Update / Edit ya Status change karne ke liye (PATCH)
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    
-    const contentType = req.headers.get('content-type') || '';
-    
-    if (contentType.includes('application/json')) {
-      const body = await req.json();
-      const { status } = body;
+    const body = await req.json();
 
-      if (status) {
-        await db
-          .update(properties)
-          .set({ status })
-          .where(eq(properties.id, id));
+    // 1. Pehle database se purani property fetch karein taake purani images ka pata chal sake
+    const existingProperty = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.id, id))
+      .limit(1);
 
-        return NextResponse.json({ success: true, message: 'Status updated successfully' }, { status: 200 });
-      }
-    } 
-    
-    if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData();
-      const property_title = formData.get('property_title') as string;
-      const price = Number(formData.get('price'));
-      const location = formData.get('location') as string;
-      const country = (formData.get('country') as string) || 'Pakistan';
-      const currency = (formData.get('currency') as string) || 'PKR';
-      const category = (formData.get('category') as string);
-      const status = formData.get('status') as string;
-      const tag = (formData.get('tag') as string);
-      const beds = Number(formData.get('beds'));
-      const baths = Number(formData.get('baths'));
-      const garages = Number(formData.get('garages'));
-      
-      const imageFile = formData.get('image');
+    const updateData: any = {};
 
-      const updateData: any = {
-        property_title,
-        price,
-        location,
-        country,
-        currency,
-        category,
-        status,
-        tag,
-        beds,
-        baths,
-        garages,
-      };
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.property_title !== undefined) {
+      updateData.property_title = body.property_title;
+      updateData.slug = body.property_title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+    }
+    if (body.price !== undefined) {
+      updateData.price = Number(String(body.price).replace(/,/g, '')) || 0;
+    }
+    if (body.location !== undefined) updateData.location = body.location;
+    if (body.country !== undefined) updateData.country = body.country;
+    if (body.currency !== undefined) updateData.currency = body.currency;
+    if (body.category !== undefined) updateData.category = body.category;
+    if (body.tag !== undefined) updateData.tag = body.tag;
+    if (body.beds !== undefined) updateData.beds = Number(body.beds);
+    if (body.baths !== undefined) updateData.baths = Number(body.baths);
+    if (body.garages !== undefined) updateData.garages = Number(body.garages);
 
-      // Agar user ne nayi image select ki hai
-      if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-        // 1. Pehle database se purani property fetch karein taake purani image ka URL mil sake
-        const existingProperty = await db
-          .select()
-          .from(properties)
-          .where(eq(properties.id, id))
-          .limit(1);
+    // 2. Agar user ne naya images/album ya single image bheja hai, toh purani Cloudinary images delete karein
+    if ((body.images !== undefined || body.image !== undefined) && existingProperty.length > 0) {
+      const prop = existingProperty[0];
 
-        if (existingProperty.length > 0 && existingProperty[0].image) {
-          const oldImageUrl = existingProperty[0].image;
-          const publicId = getPublicIdFromUrl(oldImageUrl);
+      // Agar pehle se album mojood tha
+      if (prop.images) {
+        try {
+          const oldImgs = JSON.parse(prop.images);
+          const newImgs = body.images || [];
           
-          // 2. Agar Cloudinary ki valid image thi toh usay delete kar dein
-          if (publicId) {
-            try {
-              await cloudinary.uploader.destroy(publicId);
-            } catch (err) {
-              console.error('Purani image Cloudinary se delete karne mein error:', err);
+          // Jo images purane album mein thin lekin naye mein nahi hain, unhein delete kar dein
+          for (const oldUrl of oldImgs) {
+            if (!newImgs.includes(oldUrl)) {
+              const publicId = getPublicIdFromUrl(oldUrl);
+              if (publicId) await cloudinary.uploader.destroy(publicId);
             }
           }
+        } catch {
+          // Fallback agar parse na ho
+          if (prop.image && prop.image !== body.image) {
+            const publicId = getPublicIdFromUrl(prop.image);
+            if (publicId) await cloudinary.uploader.destroy(publicId);
+          }
         }
-
-        // 3. Ab nayi image ko Cloudinary par upload karein
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        const cloudinaryUrl: string = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'chiron_properties' },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result?.secure_url || '');
-            }
-          );
-          uploadStream.end(buffer);
-        });
-
-        if (cloudinaryUrl) {
-          updateData.image = cloudinaryUrl;
+      } else if (prop.image && body.image && prop.image !== body.image) {
+        // Agar sirf single image thi aur change ho gayi hai
+        const publicId = getPublicIdFromUrl(prop.image);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
         }
       }
-
-      await db
-        .update(properties)
-        .set(updateData)
-        .where(eq(properties.id, id));
-
-      return NextResponse.json({ success: true, message: 'Property updated successfully' }, { status: 200 });
     }
 
-    return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });
+    if (body.image !== undefined) updateData.image = body.image;
+    if (body.images !== undefined) {
+      updateData.images = JSON.stringify(body.images);
+    }
 
+    await db
+      .update(properties)
+      .set(updateData)
+      .where(eq(properties.id, id));
+
+    return NextResponse.json({ success: true, message: 'Property updated successfully' }, { status: 200 });
   } catch (error) {
     console.error('Update Error:', error);
     return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
   }
 }
-
-// Property delete karne ke liye (DELETE) - Poori property delete hone par image bhi Cloudinary se remove ho jaye gi
+// Property delete karne ke liye (DELETE)
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -155,25 +127,36 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // 1. Delete karne se pehle image ka URL nikal lein
     const existingProperty = await db
       .select()
       .from(properties)
       .where(eq(properties.id, id))
       .limit(1);
 
-    if (existingProperty.length > 0 && existingProperty[0].image) {
-      const publicId = getPublicIdFromUrl(existingProperty[0].image);
-      if (publicId) {
+    if (existingProperty.length > 0) {
+      const prop = existingProperty[0];
+      // Agar album images mojood hain toh unhein Cloudinary se delete karna
+      if (prop.images) {
         try {
+          const imgs = JSON.parse(prop.images);
+          for (const imgUrl of imgs) {
+            const publicId = getPublicIdFromUrl(imgUrl);
+            if (publicId) await cloudinary.uploader.destroy(publicId);
+          }
+        } catch {
+          if (prop.image) {
+            const publicId = getPublicIdFromUrl(prop.image);
+            if (publicId) await cloudinary.uploader.destroy(publicId);
+          }
+        }
+      } else if (prop.image) {
+        const publicId = getPublicIdFromUrl(prop.image);
+        if (publicId) {
           await cloudinary.uploader.destroy(publicId);
-        } catch (err) {
-          console.error('Cloudinary image delete error:', err);
         }
       }
     }
 
-    // 2. Database se record delete karein
     await db
       .delete(properties)
       .where(eq(properties.id, id));
