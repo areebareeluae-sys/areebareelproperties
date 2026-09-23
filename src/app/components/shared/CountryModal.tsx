@@ -43,11 +43,19 @@ export default function CountryModal() {
                 
                 {/* Heading & Intro */}
                 <h3 className="text-2xl sm:text-3xl font-bold mb-2 text-black dark:text-white">
+<<<<<<< HEAD
                     Select Your Country
                 </h3>
                 
 
               
+=======
+                   Select Your Country
+                </h3>
+                
+
+               
+>>>>>>> bf65f5d916ff3907fd5560ad84a5a4813fd2c2b4
 
                 {/* Buttons with Real SVG Flags */}
                 <div className="grid grid-cols-2 gap-3">
