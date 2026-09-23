@@ -43,29 +43,11 @@ export default function CountryModal() {
                 
                 {/* Heading & Intro */}
                 <h3 className="text-2xl sm:text-3xl font-bold mb-2 text-black dark:text-white">
-                    Who is Chiron Properties?
+                   Select Your Country
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">
-                    We are a premier real estate platform offering expert solutions and premier listings. Please select your region below to continue.
-                </p>
+                
 
-                {/* Services Grid Section */}
-                <div className="mb-6 bg-gray-100/70 dark:bg-dark_border/30 p-4 rounded-xl border border-gray-200/60 dark:border-dark_border text-left">
-                    <p className="text-xs font-bold uppercase tracking-wider text-primary mb-3 text-center">
-                        Our Core Services
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {services.map((service, index) => (
-                            <div 
-                                key={index}
-                                className="flex items-center gap-2 text-xs bg-white dark:bg-darklight text-gray-700 dark:text-gray-200 p-2.5 rounded-lg font-medium shadow-2xs border border-gray-200/50 dark:border-dark_border"
-                            >
-                                <span className="text-primary font-bold">✓</span>
-                                <span>{service}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+               
 
                 {/* Buttons with Real SVG Flags */}
                 <div className="grid grid-cols-2 gap-3">
