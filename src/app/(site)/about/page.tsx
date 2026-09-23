@@ -3,10 +3,10 @@ import { Metadata } from "next";
 import HeroSub from "@/app/components/shared/hero-sub";
 import Image from "next/image";
 import Link from "next/link";
-import DiscoverProperties from '../../components/home/property-option';
-import Listing from '../../components/home/property-list';
+import Services from "../../components/home/Services/page";
+
 export const metadata: Metadata = {
-  title: "About Us | Property-pro",
+  title: "About Us | Chiron Properties",
 };
 
 export default function AboutPage() {
@@ -20,7 +20,7 @@ export default function AboutPage() {
       {/* Sub Header */}
       <HeroSub
         title="About Us"
-        description="Discover our rich story, strategic approach, core values, and the expert leadership driving your trusted property platform."
+        description="Discover our journey, how we work, our core values, and the dedicated team behind Chiron Properties."
         breadcrumbLinks={breadcrumbLinks}
       />
 
@@ -33,13 +33,13 @@ export default function AboutPage() {
                 Our Story
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-6 leading-tight">
-                Redefining Real Estate & Cross-Border Property Advisory
+                Building Trust and Simplicity in Real Estate
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                Founded with a vision to streamline property transactions across regions like Pakistan and the UAE, Property-pro has evolved into a comprehensive digital ecosystem. We combine deep market intelligence with advanced technology to bridge the gap between discerning investors, homeowners, and premium developers.
+                Chiron Properties was founded with a clear goal: to make buying, selling, and managing properties simple, transparent, and stress-free. We connect property seekers and investors with verified, high-value real estate opportunities.
               </p>
               <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                From high-yield off-plan developments to luxury ready properties, our journey is rooted in transparency, data-backed insights, and client-first execution.
+                From residential homes to commercial investments, our focus is always on putting our clients first, backed by honest guidance and reliable market insights.
               </p>
               
               <div className="grid grid-cols-3 gap-4 border-t border-border dark:border-dark_border pt-6">
@@ -49,7 +49,7 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <h3 className="text-2xl md:text-3xl font-extrabold text-primary mb-1">$500M+</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Transactions Facilitated</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Properties Handled</p>
                 </div>
                 <div>
                   <h3 className="text-2xl md:text-3xl font-extrabold text-primary mb-1">5K+</h3>
@@ -62,7 +62,7 @@ export default function AboutPage() {
               <div className="relative w-full h-[420px] rounded-2xl overflow-hidden shadow-xl border border-border dark:border-dark_border bg-gray-100 dark:bg-semidark">
                 <Image
                   src="/images/properties/default.jpg" 
-                  alt="Our Story"
+                  alt="Chiron Properties Story"
                   fill
                   className="object-cover"
                 />
@@ -79,8 +79,8 @@ export default function AboutPage() {
             <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md">
               How We Work
             </span>
-            <h2 className="text-2xl md:text-3xl font-bold mt-3 mb-3">Our Strategic Approach</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">We don’t just list properties; we analyze market trends, evaluate risk, and align investments with long-term financial objectives.</p>
+            <h2 className="text-2xl md:text-3xl font-bold mt-3 mb-3">Our Simple Approach</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">We guide you through every step of your real estate journey with clarity and care.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -88,24 +88,24 @@ export default function AboutPage() {
               <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-lg mb-4">
                 01
               </div>
-              <h3 className="text-lg font-semibold mb-2">Market Intelligence</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Leveraging deep research, historical data, and live forecasting to identify high-potential growth corridors.</p>
+              <h3 className="text-lg font-semibold mb-2">Expert Consultation</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">We understand your needs, budget, and goals to suggest the right property options for you.</p>
             </div>
 
             <div className="bg-white dark:bg-semidark p-8 rounded-xl border border-border dark:border-dark_border shadow-xs">
               <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-lg mb-4">
                 02
               </div>
-              <h3 className="text-lg font-semibold mb-2">Rigorous Verification</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Every asset undergoes strict legal, title, and developer credibility checks before presentation.</p>
+              <h3 className="text-lg font-semibold mb-2">Verified Listings</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Every property undergoes thorough legal and structural checks so you can invest with total peace of mind.</p>
             </div>
 
             <div className="bg-white dark:bg-semidark p-8 rounded-xl border border-border dark:border-dark_border shadow-xs">
               <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-lg mb-4">
                 03
               </div>
-              <h3 className="text-lg font-semibold mb-2">End-to-End Execution</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">From initial advisory and cross-border paperwork to post-purchase management, we handle it all.</p>
+              <h3 className="text-lg font-semibold mb-2">Smooth Closing</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">From paperwork and negotiations to final handover, we handle everything smoothly.</p>
             </div>
           </div>
         </div>
@@ -119,63 +119,36 @@ export default function AboutPage() {
               <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md">
                 Our Ethos
               </span>
-              <h2 className="text-3xl font-bold mt-4 mb-4">Core Values That Drive Us</h2>
+              <h2 className="text-3xl font-bold mt-4 mb-4">Core Values That Guide Us</h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                Our culture is built on unwavering principles that ensure absolute trust between our advisors, developers, and investors.
+                At Chiron Properties, our principles define who we are and how we serve our clients every single day.
               </p>
             </div>
 
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="p-6 rounded-xl border border-border dark:border-dark_border bg-white dark:bg-semidark">
-                <h3 className="text-lg font-semibold text-primary mb-2">Transparency First</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Clear pricing, zero hidden fees, and absolute honesty in every consultation.</p>
+                <h3 className="text-lg font-semibold text-primary mb-2">100% Transparency</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Clear pricing, clear terms, and no hidden surprises.</p>
               </div>
               <div className="p-6 rounded-xl border border-border dark:border-dark_border bg-white dark:bg-semidark">
-                <h3 className="text-lg font-semibold text-primary mb-2">Uncompromising Quality</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Curating only elite residential and commercial assets with high appreciation value.</p>
+                <h3 className="text-lg font-semibold text-primary mb-2">Quality Properties</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Hand-picked residential and commercial spaces built to last.</p>
               </div>
               <div className="p-6 rounded-xl border border-border dark:border-dark_border bg-white dark:bg-semidark">
-                <h3 className="text-lg font-semibold text-primary mb-2">Client Centricity</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Tailoring strategies to match specific financial goals, risk appetite, and timelines.</p>
+                <h3 className="text-lg font-semibold text-primary mb-2">Client First</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Your satisfaction and success are our highest priorities.</p>
               </div>
               <div className="p-6 rounded-xl border border-border dark:border-dark_border bg-white dark:bg-semidark">
-                <h3 className="text-lg font-semibold text-primary mb-2">Innovation & Speed</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Utilizing modern web tech to deliver lightning-fast asset search and transaction updates.</p>
+                <h3 className="text-lg font-semibold text-primary mb-2">Reliable Support</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">We stand by your side long after the deal is completed.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
-      <DiscoverProperties />
-      <Listing />
-      {/* 4. Leadership & Advisors */}
-      <section className="py-16 bg-gray-50 dark:bg-semidark/30 border-t border-border dark:border-dark_border">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md">
-              Expert Guidance
-            </span>
-            <h2 className="text-2xl md:text-3xl font-bold mt-3 mb-3">Leadership & Advisors</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">Industry veterans with decades of collective experience in international real estate and finance.</p>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {[
-              { name: "Talha Mehmood", role: "Managing Director & Founder", img: "/images/properties/default.jpg" },
-              { name: "Ahmad Khan", role: "Head of Real Estate Advisory", img: "/images/properties/default.jpg" },
-              { name: "Sarah Al-Maktoum", role: "Cross-Border Investment Lead", img: "/images/properties/default.jpg" }
-            ].map((leader, index) => (
-              <div key={index} className="bg-white dark:bg-semidark rounded-xl overflow-hidden border border-border dark:border-dark_border text-center p-6">
-                <div className="relative w-28 h-28 mx-auto rounded-full overflow-hidden mb-4 border-2 border-primary/20">
-                  <Image src={leader.img} alt={leader.name} fill className="object-cover" />
-                </div>
-                <h3 className="text-lg font-bold">{leader.name}</h3>
-                <p className="text-xs text-primary font-medium mt-1">{leader.role}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Services Component */}
+      <Services />
 
       {/* 5. Partners Section */}
       <section className="py-16">
@@ -195,12 +168,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 6. Careers Banner (Optional) */}
+      {/* 6. Careers Banner */}
       <section className="py-16 bg-black text-white dark:bg-semidark border-t border-border dark:border-dark_border">
         <div className="container mx-auto px-4 max-w-4xl text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Want to Join Our Growing Team?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white">Want to Join the Chiron Properties Team?</h2>
           <p className="text-gray-400 text-sm max-w-xl mx-auto mb-8">
-            We are always looking for passionate property consultants, developers, and market analysts to shape the future of real estate.
+            We are always looking for passionate property experts and advisors to grow with us.
           </p>
           <Link
             href="/contact"

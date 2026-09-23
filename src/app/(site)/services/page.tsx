@@ -3,9 +3,10 @@ import { Metadata } from "next";
 import HeroSub from "@/app/components/shared/hero-sub";
 import Image from "next/image";
 import Link from "next/link";
+import Services from "@/app/components/home/Services/page";
 
 export const metadata: Metadata = {
-  title: "Our Services | Property-pro",
+  title: "Our Services | Chiron Properties",
 };
 
 export default function ServicesPage() {
@@ -19,174 +20,80 @@ export default function ServicesPage() {
       {/* Sub Header */}
       <HeroSub
         title="Our Services"
-        description="Explore our elite suite of real estate advisory, asset management, and cross-border investment solutions."
+        description="Explore Chiron Properties' elite suite of real estate solutions, designed to protect your investments and maximize value."
         breadcrumbLinks={breadcrumbLinks}
       />
 
-      {/* 1. Feature Service Banner (Buy & Invest) */}
+      {/* 1. Feature Service Banner (Property Management & Professional Inspection) */}
       <section className="py-20">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative h-[400px] sm:h-[450px] rounded-2xl overflow-hidden shadow-2xl border border-border dark:border-dark_border">
               <Image
                 src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=80"
-                alt="Buy and Invest Property"
+                alt="Property Management and Inspection"
                 fill
                 className="object-cover hover:scale-105 transition duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-8">
                 <div>
                   <span className="text-xs uppercase tracking-widest text-primary font-bold bg-primary/20 px-3 py-1 rounded-full backdrop-blur-md">
-                    Core Pillars
+                    Asset Care & Safety
                   </span>
-                  <h3 className="text-2xl font-bold text-white mt-3">Smart Buying & High-Yield Investing</h3>
+                  <h3 className="text-2xl font-bold text-white mt-3">Comprehensive Management & Inspection</h3>
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
               <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md">
-                01 & 02 — Acquisition & Growth
+                01 & 02 — Protection & Integrity
               </span>
               <h2 className="text-3xl md:text-4xl font-bold leading-tight">
-                Strategic Property Buying & Investment Advisory
+                Property Management & Professional Inspection
               </h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base">
-                Whether you are looking for your dream luxury villa or a high-ROI commercial asset, we leverage deep market intelligence to hand-pick verified opportunities. Our advisory team evaluates risks, tracks historical trends, and maximizes your capital growth.
+                At Chiron Properties, we safeguard your investments. Our comprehensive management services handle tenants, rent collection, and maintenance effortlessly. Coupled with our thorough professional inspections, we evaluate structural integrity to uncover hidden issues before you buy, sell, or lease.
               </p>
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="p-4 rounded-xl bg-gray-50 dark:bg-semidark border border-border dark:border-dark_border">
-                  <h4 className="font-bold text-primary text-lg">Verified Assets</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Strict legal & title checks on every listing.</p>
+                  <h4 className="font-bold text-primary text-lg">Yield Maximization</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hassle-free passive income and tenant care.</p>
                 </div>
                 <div className="p-4 rounded-xl bg-gray-50 dark:bg-semidark border border-border dark:border-dark_border">
-                  <h4 className="font-bold text-primary text-lg">Data-Driven ROI</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Focused on high-appreciation corridors.</p>
+                  <h4 className="font-bold text-primary text-lg">Structural Safety</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Expert-led risk and quality assessments.</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+<Services/>
 
-      {/* 2. Grid Cards for Sell, Lease & Management */}
-      <section className="py-20 bg-gray-50 dark:bg-semidark/30 border-t border-border dark:border-dark_border">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md">
-              Lifecycle Management
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-3 mb-4">Sell, Lease & Asset Care</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              We ensure maximum market visibility for sellers and hassle-free passive income for landlords.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Sell Property */}
-            <div className="bg-white dark:bg-semidark rounded-2xl overflow-hidden border border-border dark:border-dark_border shadow-xs flex flex-col justify-between group">
-              <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80"
-                  alt="Sell Property"
-                  fill
-                  className="object-cover group-hover:scale-110 transition duration-500"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-primary">03 / Quick Liquidity</span>
-                  <h3 className="text-xl font-bold mt-2 mb-3">Sell Property</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Professional media staging, targeted multi-channel marketing, and rapid deal closing executed by top negotiators.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border dark:border-dark_border">
-                  <Link href="/contact" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                    List Your Property &rarr;
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Leasing Solutions */}
-            <div className="bg-white dark:bg-semidark rounded-2xl overflow-hidden border border-border dark:border-dark_border shadow-xs flex flex-col justify-between group">
-              <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=600&q=80"
-                  alt="Leasing Solutions"
-                  fill
-                  className="object-cover group-hover:scale-110 transition duration-500"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-primary">04 / Rental Management</span>
-                  <h3 className="text-xl font-bold mt-2 mb-3">Leasing Solutions</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Thorough tenant background checks, secure lease documentation, and automated rent scheduling for seamless tenancy.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border dark:border-dark_border">
-                  <Link href="/contact" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                    Find Tenants &rarr;
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Property Management */}
-            <div className="bg-white dark:bg-semidark rounded-2xl overflow-hidden border border-border dark:border-dark_border shadow-xs flex flex-col justify-between group">
-              <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=600&q=80"
-                  alt="Property Management"
-                  fill
-                  className="object-cover group-hover:scale-110 transition duration-500"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-primary">05 / Peace of Mind</span>
-                  <h3 className="text-xl font-bold mt-2 mb-3">Property Management</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    End-to-end physical asset care, routine maintenance supervision, utility tracking, and complete owner representation.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border dark:border-dark_border">
-                  <Link href="/contact" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                    Explore Management &rarr;
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Land Development & Cross-Border Advisory */}
+      {/* 3. After Sales Support Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 order-2 lg:order-1">
               <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/10 px-3 py-1 rounded-md">
-                06 & 07 — Scale & International
+                06 — Long-Term Partnership
               </span>
               <h2 className="text-3xl md:text-4xl font-bold leading-tight">
-                Land, Development & Cross-Border Advisory
+                Dedicated After Sales Support
               </h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base">
-                For large-scale developers and international investors, we provide master-planning consultation, zoning law analysis, and seamless cross-border financial channeling between Pakistan, the UAE, and worldwide hubs.
+                At Chiron Properties, our relationship doesn't end when the deal closes. We provide dedicated assistance long after paperwork is signed, handling legal documentation transfers, smooth maintenance transitions, and continuous client queries with utmost care.
               </p>
               <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary"></span> Land acquisition & feasibility studies
+                  <span className="w-2 h-2 rounded-full bg-primary"></span> Complete legal documentation & title transfer guidance
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary"></span> International property portfolio diversification
+                  <span className="w-2 h-2 rounded-full bg-primary"></span> Seamless utility & maintenance handovers
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary"></span> Regulatory & legal cross-border compliance
+                  <span className="w-2 h-2 rounded-full bg-primary"></span> Ongoing client support and portfolio advisory
                 </li>
               </ul>
             </div>
@@ -194,16 +101,16 @@ export default function ServicesPage() {
             <div className="relative h-[400px] sm:h-[450px] rounded-2xl overflow-hidden shadow-2xl border border-border dark:border-dark_border order-1 lg:order-2">
               <Image
                 src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80"
-                alt="Cross-Border Advisory Skyline"
+                alt="After Sales Support Chiron Properties"
                 fill
                 className="object-cover hover:scale-105 transition duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-8">
                 <div>
                   <span className="text-xs uppercase tracking-widest text-primary font-bold bg-primary/20 px-3 py-1 rounded-full backdrop-blur-md">
-                    Global Reach
+                    Client First
                   </span>
-                  <h3 className="text-2xl font-bold text-white mt-3">Connecting Global Markets Seamlessly</h3>
+                  <h3 className="text-2xl font-bold text-white mt-3">We Stand With You Beyond the Deal</h3>
                 </div>
               </div>
             </div>
@@ -217,9 +124,9 @@ export default function ServicesPage() {
           <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-primary/20 px-3 py-1 rounded-md">
             Let's Talk Business
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-4">Ready to Accelerate Your Real Estate Goals?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-4">Ready to Experience Excellence with Chiron Properties?</h2>
           <p className="text-gray-400 text-sm max-w-xl mx-auto mb-8 leading-relaxed">
-            Schedule a private, one-on-one consultation with our senior advisors and get custom tailored execution frameworks.
+            Schedule a private, one-on-one consultation with our expert advisors and let us handle your real estate journey from start to finish.
           </p>
           <Link
             href="/contact"

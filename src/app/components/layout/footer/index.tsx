@@ -45,7 +45,7 @@ const Footer = () => {
                 Address
               </h4>
               <p className="mb-6 text-gray text-base">
-               Chiron Properties United Arab Emirates (UAE) </p>
+                Chiron Properties United Arab Emirates (UAE) </p>
               <div className="flex items-center gap-2">
                 <a
                   aria-label="social link"
@@ -109,8 +109,11 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/properties/properties-list" className="mb-3 inline-block text-base text-gray hover:text-white">
-                    Properties
+                  <Link href="/legal" className="mb-3 inline-block text-base text-gray hover:text-white">
+                    Legal
+                  </Link>
+                    <Link href="/insights" className="mb-3 inline-block text-base text-gray hover:text-white">
+                    Insights
                   </Link>
                 </li>
               </ul>
@@ -145,6 +148,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      
+      {/* Middle Contact & Newsletter Bar */}
       <div className="border-t border-border dark:border-dark_border py-8">
         <div className="container flex flex-col lg:flex-row justify-between items-center mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
           <div className="lg:max-w-45 max-w-full text-center lg:text-left mb-4 lg:mb-0">
@@ -174,8 +179,19 @@ const Footer = () => {
           </div>
         </div>
       </div>
+
+      {/* Copyright Bar */}
+      <div className="border-t border-border dark:border-dark_border py-4 bg-black/20">
+        <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-gray text-sm">
+            © {new Date().getFullYear()} Chiron Properties. All rights reserved.
+          </p>
+        </div>
+      </div>
     </footer>
   );
 };
+
+Footer.displayName = "Footer";
 
 export default Footer;

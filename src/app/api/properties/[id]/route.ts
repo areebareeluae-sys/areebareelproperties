@@ -32,7 +32,6 @@ function getPublicIdFromUrl(url: string): string | null {
 }
 
 // Property Update / Edit ya Status change karne ke liye (PATCH)
-// Property Update / Edit ya Status change karne ke liye (PATCH)
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -61,26 +60,49 @@ export async function PATCH(
     if (body.price !== undefined) {
       updateData.price = Number(String(body.price).replace(/,/g, '')) || 0;
     }
+    
+    // Naye fields ki mapping
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.mini_description !== undefined) updateData.mini_description = body.mini_description;
+    if (body.pin_location !== undefined) updateData.pin_location = body.pin_location;
+    if (body.agent_name !== undefined) updateData.agent_name = body.agent_name;
+    if (body.agent_number !== undefined) updateData.agent_number = body.agent_number;
+
+    if (body.property_type !== undefined) {
+      updateData.property_type = body.property_type;
+      // Agar Commercial ho jaye toh beds/baths/garages ko automatically 0 kar dein
+      if (body.property_type === 'Commercial') {
+        updateData.beds = 0;
+        updateData.baths = 0;
+        updateData.garages = 0;
+      }
+    }
+    if (body.area_size !== undefined) updateData.area_size = body.area_size;
+    if (body.city !== undefined) updateData.city = body.city;
+    if (body.area !== undefined) updateData.area = body.area;
+
     if (body.location !== undefined) updateData.location = body.location;
     if (body.country !== undefined) updateData.country = body.country;
     if (body.currency !== undefined) updateData.currency = body.currency;
     if (body.category !== undefined) updateData.category = body.category;
     if (body.tag !== undefined) updateData.tag = body.tag;
-    if (body.beds !== undefined) updateData.beds = Number(body.beds);
-    if (body.baths !== undefined) updateData.baths = Number(body.baths);
-    if (body.garages !== undefined) updateData.garages = Number(body.garages);
+
+    // Beds, baths, garages sirf tab update hon jab Commercial na ho ya explicitly bheje gaye hon
+    if (body.property_type !== 'Commercial') {
+      if (body.beds !== undefined) updateData.beds = Number(body.beds);
+      if (body.baths !== undefined) updateData.baths = Number(body.baths);
+      if (body.garages !== undefined) updateData.garages = Number(body.garages);
+    }
 
     // 2. Agar user ne naya images/album ya single image bheja hai, toh purani Cloudinary images delete karein
     if ((body.images !== undefined || body.image !== undefined) && existingProperty.length > 0) {
       const prop = existingProperty[0];
 
-      // Agar pehle se album mojood tha
       if (prop.images) {
         try {
           const oldImgs = JSON.parse(prop.images);
           const newImgs = body.images || [];
           
-          // Jo images purane album mein thin lekin naye mein nahi hain, unhein delete kar dein
           for (const oldUrl of oldImgs) {
             if (!newImgs.includes(oldUrl)) {
               const publicId = getPublicIdFromUrl(oldUrl);
@@ -88,14 +110,12 @@ export async function PATCH(
             }
           }
         } catch {
-          // Fallback agar parse na ho
           if (prop.image && prop.image !== body.image) {
             const publicId = getPublicIdFromUrl(prop.image);
             if (publicId) await cloudinary.uploader.destroy(publicId);
           }
         }
       } else if (prop.image && body.image && prop.image !== body.image) {
-        // Agar sirf single image thi aur change ho gayi hai
         const publicId = getPublicIdFromUrl(prop.image);
         if (publicId) {
           await cloudinary.uploader.destroy(publicId);
@@ -119,6 +139,7 @@ export async function PATCH(
     return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
   }
 }
+
 // Property delete karne ke liye (DELETE)
 export async function DELETE(
   req: Request,

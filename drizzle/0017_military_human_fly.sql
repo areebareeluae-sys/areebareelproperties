@@ -1,0 +1,1 @@
+ALTER TABLE `inventory_profit` ADD `plan` text NOT NULL;

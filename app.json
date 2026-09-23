@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "abb928a5-e137-43c2-8953-5faf488905b5"
+      }
+    },
+    "android": {
+      "package": "com.talhamehmood.property_project"
+    }
+  }
+}

@@ -3,14 +3,22 @@ import { NextResponse } from "next/server";
 interface SearchOption {
     value: string;
     label: string;
+    country?: string; // Country mapping ke liye
+    city?: string;    // City mapping ke liye (Area ke sath)
+    type?: string;    // Category mapping ke liye (Property Type ke sath) - Yeh add kiya gaya hai
     placeholder?: string;
 }
 
 interface SearchOptions {
     keywords: SearchOption[];
     country: SearchOption[];
+    city: SearchOption[];
+    area: SearchOption[];
+    property_type: SearchOption[];
     category: SearchOption[];
+    status: SearchOption[];
     beds: SearchOption[];
+    baths: SearchOption[];
     garages: SearchOption[];
     [key: string]: SearchOption[];
 }
@@ -54,27 +62,74 @@ const searchOptions: SearchOptions = {
         { value: 'Pakistan', label: 'Pakistan' },
         { value: 'United Arab Emirates', label: 'United Arab Emirates' },
     ],
-    category: [
-        { value: '', label: 'Category' },
-        { value: 'Studio apartment', label: 'Studio Apartment' },
-        { value: 'villa', label: 'Villa' },
-        { value: 'office', label: 'Office' },
-        { value: 'shop', label: 'Shop' },
-        { value: 'house', label: 'House' },
-        { value: 'warehouse', label: 'Warehouse' },
+    city: [
+        { value: '', label: 'Select City' },
+        // Pakistan Cities
+        { value: 'Lahore', label: 'Lahore', country: 'Pakistan' },
+        { value: 'Karachi', label: 'Karachi', country: 'Pakistan' },
+        { value: 'Islamabad', label: 'Islamabad', country: 'Pakistan' },
+        // UAE Cities
+        { value: 'Sharjah', label: 'Sharjah', country: 'United Arab Emirates' },
+        { value: 'Dubai', label: 'Dubai', country: 'United Arab Emirates' },
     ],
+    area: [
+        { value: '', label: 'Select Area' },
+        // Lahore Areas
+        { value: 'Gulberg', label: 'Gulberg', city: 'Lahore' },
+        { value: 'DHA', label: 'DHA', city: 'Lahore' },
+        { value: 'Bahria Town', label: 'Bahria Town', city: 'Lahore' },
+          { value: 'Thokar Niaz Baig', label: 'Thokar Niaz Baig', city: 'Lahore' },
+        // Karachi Areas
+        { value: 'Clifton', label: 'Clifton', city: 'Karachi' },
+        { value: 'Defence', label: 'Defence', city: 'Karachi' },
+        // Islamabad Areas
+        { value: 'F-7', label: 'F-7', city: 'Islamabad' },
+        { value: 'E-11', label: 'E-11', city: 'Islamabad' },
+        // Dubai Areas
+        { value: 'Downtown Dubai', label: 'Downtown Dubai', city: 'Dubai' },
+        { value: 'Dubai Marina', label: 'Dubai Marina', city: 'Dubai' },
+        // Sharjah Areas
+        { value: 'Al Nahda', label: 'Al Nahda', city: 'Sharjah' },
+    ],
+    property_type: [
+        { value: '', label: 'Property Type' },
+        { value: 'Residential', label: 'Residential' },
+        { value: 'Commercial', label: 'Commercial' },
+    ],
+    category: [
+        { value: '', label: 'Category', type: '' },
+        { value: 'Studio apartment', label: 'Studio Apartment', type: 'Residential' },
+        { value: 'villa', label: 'Villa', type: 'Residential' },
+        { value: 'house', label: 'House', type: 'Residential' },
+        { value: 'office', label: 'Office', type: 'Commercial' },
+        { value: 'shop', label: 'Shop', type: 'Commercial' },
+        { value: 'warehouse', label: 'Warehouse', type: 'Commercial' },
+    ], // <--- Yahan comma missing tha, jo theek kar diya hai
+status: [
+    { value: '', label: 'Select Status' },
+    { value: 'For Rent', label: 'For Rent' },
+    { value: 'For Sale', label: 'For Sale' },
+    { value: 'Sold Out', label: 'Sold Out' },
+    { value: 'Off Plan', label: 'Off Plan' },
+],
     beds: [
         { value: '', label: 'Beds' },
-        { value: '0', label: ' 0 Beds' },
+        { value: '0', label: '0 Beds' },
         { value: '1', label: '1 Bed' },
         { value: '2', label: '2 Beds' },
         { value: '3', label: '3 Beds' },
         { value: '4', label: '4 Beds' },
         { value: '5', label: '5 Beds' },
     ],
+    baths: [
+        { value: '', label: 'Baths' },
+        { value: '1', label: '1 Bath' },
+        { value: '2', label: '2 Baths' },
+        { value: '3', label: '3+ Baths' },
+    ],
     garages: [
         { value: '', label: 'Garages' },
-         { value: '0', label: '0 Garages' },
+        { value: '0', label: '0 Garages' },
         { value: '1', label: '1 Garage' },
         { value: '2', label: '2 Garages' },
     ],

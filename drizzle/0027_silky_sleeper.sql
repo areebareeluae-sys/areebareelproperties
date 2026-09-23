@@ -1,0 +1,1 @@
+ALTER TABLE `ad_banners` ADD `public_id` text NOT NULL;

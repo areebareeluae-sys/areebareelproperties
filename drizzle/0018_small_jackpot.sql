@@ -1,0 +1,1 @@
+ALTER TABLE `inventory_profit` ADD `total_price` real NOT NULL;

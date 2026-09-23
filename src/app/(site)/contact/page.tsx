@@ -6,7 +6,7 @@ import ContactInfo from "@/app/components/contact/contact-info";
 import ContactForm from "@/app/components/contact/form";
 import Location from "@/app/components/contact/office-location";
 export const metadata: Metadata = {
-  title: "Contact | Property-pro",
+  title: "Contact | chironproperties.com",
 };
 
 const page = () => {

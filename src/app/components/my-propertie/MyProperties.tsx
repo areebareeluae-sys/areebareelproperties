@@ -38,7 +38,7 @@ export default function MyPropertiesPage() {
       const currentUser = storedUser ? JSON.parse(storedUser) : null;
       const userId = currentUser?.id || "1";
 
-      const res = await fetch(`/api/properties?userId=${userId}`);
+      const res = await fetch(`/api/properties`);
       const result = await res.json();
       
       const propertyList = Array.isArray(result) ? result : result.data;
@@ -89,16 +89,26 @@ export default function MyPropertiesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-28 max-w-6xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-2xl font-bold text-black dark:text-white">My Properties</h1>
-        
+    <div className="container mx-auto px-4 py-28 max-w-6xl space-y-6">
+      
+      {/* Centered Heading */}
+      <div className="text-center py-4">
+        <h1 className="text-3xl sm:text-4xl font-black text-black dark:text-white tracking-tight">
+          My Properties
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Manage your property listings and details efficiently
+        </p>
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-4">
+        <div></div>
         <button
           onClick={() => {
             setEditingProperty(null);
             setIsModalOpen(true);
           }}
-          className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm font-medium"
+          className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm font-medium text-sm"
         >
           + Add New Property
         </button>
@@ -163,7 +173,7 @@ export default function MyPropertiesPage() {
                 setEditingProperty(null);
                 setIsModalOpen(true);
               }}
-              className="text-primary font-medium hover:underline"
+              className="text-primary font-medium hover:underline text-sm"
             >
               Add new Property
             </button>
@@ -245,7 +255,7 @@ export default function MyPropertiesPage() {
                     className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition dark:bg-red-900/20"
                   >
                     Delete
-                </button>
+                  </button>
                 </div>
               </div>
             </div>

@@ -4,32 +4,36 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Define routes that require authentication
-  const protectedRoutes = ["/my-properties", "/forgot-password"];
+  const isAdminRoute = path.startsWith("/admin");
+  const isUserRoute = path.startsWith("/user") || path.startsWith("/my-properties");
 
-  // Check if the current path is one of the protected routes
-  const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
+  if (!isAdminRoute && !isUserRoute) {
+    return NextResponse.next();
+  }
 
-  // Check for NextAuth session cookie or custom localStorage/cookie token
-  // NextAuth default cookies: __Secure-next-auth.session-token or next-auth.session-token
-  const nextAuthToken =
-    request.cookies.get("next-auth.session-token")?.value ||
-    request.cookies.get("__Secure-next-auth.session-token")?.value;
-    
-  // If you also store a custom token/cookie for standard login, check it here
-  const customUserToken = request.cookies.get("user")?.value;
+  // Alag alag cookies read karein jo humne login par set ki hain
+  const adminToken = request.cookies.get("admin_token")?.value;
+  const userToken = request.cookies.get("user_token")?.value;
 
-  const isAuthenticated = Boolean(nextAuthToken || customUserToken);
-
-  // If the route is protected and the user is NOT authenticated, redirect to /signin
-  if (isProtectedRoute && !isAuthenticated) {
+  // 1. Agar koi bhi login nahi hai (dono cookies gayab hain) -> Signin par bhejo
+  if (!adminToken && !userToken) {
     return NextResponse.redirect(new URL("/signin", request.url));
+  }
+
+  // 2. 🛑 STRICT SECURITY: Agar koi /admin route par ja raha hai
+  // Lekin uske paas sirf client wali cookie hai (`user_token`), admin wali nahi (`admin_token`)
+  if (isAdminRoute && !adminToken) {
+    // Usay foran kick out kar ke home ya user page par bhej do!
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
 }
 
-// Configure which routes the middleware should run on
 export const config = {
-  matcher: ["/my-properties/:path*", "/signup", "/forgot-password"],
+  matcher: [
+    "/admin/:path*",     
+    "/user/:path*",      
+    "/my-properties/:path*" 
+  ],
 };

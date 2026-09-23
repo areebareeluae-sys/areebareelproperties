@@ -34,21 +34,31 @@ export const AppContextProvider: React.FC<{ children: ReactNode }> = ({
   const [properties, setProperties] = useState<propertyData[]>([]);
   const [filters, setFilters] = useState<Filters>({
     keyword: '',
+    property_type: '',
+    country: '',
+    city: '',
+    area: '',
     location: '',
     region: '',
     status: '',
     category: '',
+    tag: '',
     beds: '',
     baths: '',
     garages: '',
-    tag: '',
+    area_size: '',
+    distance: '',
+    minPrice: '',
+    maxPrice: '', // <-- Added maxPrice to match your interface
   });
 
   // Extract fetchProperties into useCallback so it can be exposed via Context
   const fetchProperties = useCallback(async () => {
     try {
       const res = await fetch('/api/propertydata');
-      const data = await res.json();
+      const result = await res.json();
+      const data = Array.isArray(result) ? result : result.data;
+      
       if (Array.isArray(data)) {
         setAllProperties(data);
         setProperties(data);
@@ -63,56 +73,25 @@ export const AppContextProvider: React.FC<{ children: ReactNode }> = ({
     fetchProperties();
   }, [fetchProperties]);
 
-  // Filtering logic
-  useEffect(() => {
-    const filteredProperties = allProperties.filter((property) => {
-      return (
-        (!filters.keyword ||
-          property.property_title
-            ?.toLowerCase()
-            .includes(filters.keyword.toLowerCase())) &&
-        (!filters.location ||
-          property.location?.toLowerCase() === filters.location.toLowerCase()) &&
-        (!filters.tag ||
-          property.tag?.toLowerCase() === filters.tag.toLowerCase()) &&
-        (!filters.status || property.status === filters.status) &&
-        (!filters.category ||
-          property.category?.toLowerCase() ===
-            filters.category.toLowerCase()) &&
-        (!filters.beds || property.beds === Number(filters.beds)) &&
-        (!filters.garages || property.garages === Number(filters.garages))
-      );
-    });
-
-    setProperties(filteredProperties);
-  }, [filters, allProperties]);
-
   const updateFilter = (key: keyof Filters, value: string) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
+    setFilters((prev) => ({
+      ...prev,
       [key]: value,
     }));
   };
 
-  // Dynamic Add Property Handler
   const addProperty = async (newProp: Partial<propertyData>): Promise<boolean> => {
     try {
       const res = await fetch('/api/propertydata', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProp),
       });
-
       if (res.ok) {
-        const savedProperty = await res.json();
-        setAllProperties((prev) => [savedProperty, ...prev]);
+        await fetchProperties();
         return true;
-      } else {
-        console.error('Failed to save property to database');
-        return false;
       }
+      return false;
     } catch (error) {
       console.error('Error adding property:', error);
       return false;
@@ -124,16 +103,12 @@ export const AppContextProvider: React.FC<{ children: ReactNode }> = ({
       const res = await fetch(`/api/propertydata?id=${id}`, {
         method: 'DELETE',
       });
-
       if (res.ok) {
-        setAllProperties((prev) =>
-          prev.filter((item) => (item as any).id !== id)
-        );
-      } else {
-        alert('Failed to delete property from database.');
+        setAllProperties((prev) => prev.filter((p: any) => p.id !== id));
+        setProperties((prev) => prev.filter((p: any) => p.id !== id));
       }
     } catch (error) {
-      console.error('Delete error:', error);
+      console.error('Error deleting property:', error);
     }
   };
 

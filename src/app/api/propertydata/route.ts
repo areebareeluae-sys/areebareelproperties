@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { properties } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq,ne } from 'drizzle-orm';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Cloudinary configuration
@@ -19,7 +19,7 @@ export async function GET() {
     const data = await db
       .select()
       .from(properties)
-      .where(eq(properties.status, 'Active'));
+      .where(ne(properties.status, 'Inactive')); // Yahan 'eq' se 'ne' kar diya gaya hai
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
@@ -34,22 +34,34 @@ export async function GET() {
 // 2. Create Property with JSON & Multiple Images Array (POST)
 export async function POST(req: Request) {
   try {
-    // Frontend se JSON body aa rahi hai
     const body = await req.json();
     
     const userId = body.userId || '1';
     const property_title = body.property_title || 'Untitled Property';
+    const description = body.description || null;
+    const mini_description = body.mini_description || null;
+    const property_type = body.property_type || 'Residential';
+    const category = body.category || 'General';
+    const tag = body.tag || 'For Sale';
+    
     const rawPrice = body.price ? String(body.price) : '0';
     const price = Number(rawPrice.replace(/,/g, '')) || 0;
-    const location = body.location || 'Unspecified Location';
-    const country = body.country || 'Pakistan';
+    
     const currency = body.currency || 'PKR';
-    const category = body.category || 'General';
+    const area_size = body.area_size || null;
+    const country = body.country || 'Pakistan';
+    const city = body.city || 'Lahore';
+    const area = body.area || 'Gulberg III';
+    const location = body.location || `${area}, ${city}, ${country}`;
+    const pin_location = body.pin_location || null;
+    const agent_name = body.agent_name || null;
+    const agent_number = body.agent_number || null;
     const status = body.status || 'Active';
-    const tag = body.tag || 'For Sale';
-    const beds = Number(body.beds) || 0;
-    const baths = Number(body.baths) || 0;
-    const garages = Number(body.garages) || 0;
+
+    // Commercial ke liye beds, baths, garages ko 0 kar dein
+    const beds = property_type === 'Commercial' ? 0 : (Number(body.beds) || 0);
+    const baths = property_type === 'Commercial' ? 0 : (Number(body.baths) || 0);
+    const garages = property_type === 'Commercial' ? 0 : (Number(body.garages) || 0);
     
     // Multiple images ya single image array
     const imageInput = body.image || '';
@@ -69,19 +81,27 @@ export async function POST(req: Request) {
         id: crypto.randomUUID(),
         userId,
         property_title,
-        slug,
-        price,
-        location,
-        country,
-        currency,
+        description,
+        mini_description,
+        property_type,
         category,
-        status,
         tag,
+        price,
+        currency,
+        area_size,
+        country,
+        city,
+        area,
+        location,
+        pin_location,
+        agent_name,
+        agent_number,
+        status,
+        slug,
         beds,
         baths,
         garages,
         image: primaryImage,
-        // Agar aapke Drizzle schema mein 'images' column mojood hai toh usay JSON ya stringify kar ke save karein:
         images: JSON.stringify(imagesArray), 
         createdAt: new Date().toISOString(),
       })

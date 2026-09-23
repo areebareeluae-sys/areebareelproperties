@@ -1,0 +1,1 @@
+ALTER TABLE `inventory_profit` ADD `profit_date` text NOT NULL;

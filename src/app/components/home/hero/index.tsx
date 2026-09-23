@@ -1,58 +1,83 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useContext } from 'react';
 import { PropertyContext } from "@/context-api/PropertyContext";
+import { Icon } from "@iconify/react";
 
 const Hero = () => {
   const router = useRouter();
-  const [propertiesData, setPropertiesData] = useState<any[]>([])
-  const { properties, updateFilter } = useContext(PropertyContext)!;
-  const [activeTab, setActiveTab] = useState("sell");
+  const [propertiesData, setPropertiesData] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+  const { updateFilter } = useContext(PropertyContext)!;
+  const [activeTab, setActiveTab] = useState("buy");
+  const [showDropdown, setShowDropdown] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [location, setLocation] = useState("");
   const [error, setError] = useState('');
+  
+  const [selectedCountry, setSelectedCountry] = useState("United Arab Emirates");
 
+  // Fetch Properties & Banners Data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/propertydata')
-        if (!res.ok) throw new Error('Failed to fetch')
-
-        const data = await res.json()
-        setPropertiesData(data || [])
+        const res = await fetch('/api/propertydata');
+        if (!res.ok) throw new Error('Failed to fetch properties');
+        const data = await res.json();
+        setPropertiesData(data || []);
       } catch (error) {
-        console.error('Error fetching services:', error)
+        console.error('Error fetching properties:', error);
+      }
+    };
+
+    const fetchBanners = async () => {
+      try {
+        const res = await fetch('/api/banners');
+        if (!res.ok) throw new Error('Failed to fetch banners');
+        const data = await res.json();
+        setBanners(data || []);
+      } catch (error) {
+        console.error('Error fetching banners:', error);
+      }
+    };
+
+    fetchData();
+    fetchBanners();
+  }, []);
+
+  // Auto slide advertisement banners every 3 seconds
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [banners]);
+
+  useEffect(() => {
+    const storedCountry = localStorage.getItem("selected_country");
+    if (storedCountry) {
+      if (storedCountry.toUpperCase() === "PK") {
+        setSelectedCountry("Pakistan");
+      } else if (storedCountry.toUpperCase() === "UAE") {
+        setSelectedCountry("United Arab Emirates");
+      } else {
+        setSelectedCountry(storedCountry);
       }
     }
+  }, []);
 
-    fetchData()
-  }, [])
-
-  const handleTabChange = (tab: any) => {
-    setActiveTab(tab);
-  };
-
-  const handleSearchSell = () => {
+  const handleSearch = () => {
     if (location.trim() === '') {
-      setError('Please enter a location to search.');
+      setError('Please enter an area, community, or project.');
       return;
     }
     setError('');
     updateFilter('location', location);
-    updateFilter('tag', 'sell');
-    router.push(`/properties/properties-list`);
-  };
-
-  const handleSearchBuy = () => {
-    if (location.trim() === '') {
-      setError('Please enter a location to search.');
-      return;
-    }
-    setError('');
-    updateFilter('location', location);
-    updateFilter('tag', 'Buy');
+    updateFilter('tag', activeTab);
     router.push(`/properties/properties-list`);
   };
 
@@ -64,155 +89,136 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative pt-44 pb-0 bg-[url('/images/hero/pexels-kirandeepsingh-14330901.jpg')] dark:bg-[url('/images/hero/pexels-maria-charizani-3542905-5577693.jpg')] bg-cover bg-center bg-no-repeat overflow-x-hidden">
-      {/* Optional dark/light overlay to keep text readable over custom photos */}
-      <div className="absolute inset-0 bg-white/70 dark:bg-darklight/80 -z-10" />
+    <section className="relative min-h-screen flex items-center justify-center bg-[url('/images/hero/pexels-kirandeepsingh-14330901.jpg')] dark:bg-[url('/images/hero/pexels-maria-charizani-3542905-5577693.jpg')] bg-cover bg-center bg-no-repeat overflow-x-hidden mb-8">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 -z-10" />
 
-      <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md relative z-10">
-        <div className="grid lg:grid-cols-12 grid-cols-1">
-          <div
-            className="flex flex-col col-span-6 justify-center items-start"
-            data-aos="fade-right"
-          >
-            <div className="mb-8">
-              <h1 className="md:text-[50px] leading-[1.2] text-4xl  ml-4 text-white dark:text-white font-bold">
-                Find Your Best Real Estate
-              </h1>
-            </div>
-            <div className="max-w-xl ml-4 sm:w-full">
-              <div className="flex gap-1 bg-trasperent">
-                <button
-                  className={`px-9 py-3 text-xl rounded-t-md focus:outline-none ${activeTab === "sell"
-                    ? "bg-white dark:bg-darkmode text-midnight_text dark:text-white border-b-2 border-black dark:border-white"
-                    : "text-midnight_text bg-white bg-opacity-50 dark:text-white dark:bg-darkmode dark:bg-opacity-50"
-                    }`}
-                  onClick={() => handleTabChange("sell")}
-                >
-                  Sell
-                </button>
-                <button
-                  className={`px-9 py-3 text-xl rounded-t-md focus:outline-none ${activeTab === "buy"
-                    ? "bg-white dark:bg-darkmode dark:text-white text-midnight_text border-b-2 border-black dark:border-white"
-                    : "text-midnight_text bg-white bg-opacity-50 dark:text-white dark:bg-darkmode dark:bg-opacity-50"
-                    }`}
-                  onClick={() => handleTabChange("buy")}
-                >
-                  Buy
-                </button>
-              </div>
-              <div className="bg-white dark:bg-transparent rounded-b-lg rounded-tr-lg">
-                {activeTab === "sell" && (
-                  <div className="bg-white dark:bg-darkmode rounded-b-lg rounded-tr-lg shadow-lg p-8 pb-10">
-                    <div className="relative rounded-lg border-0 my-2">
-                      <div className="relative flex items-center">
-                        <div className="absolute left-0 p-4">
-                          <Image
-                            src="/images/svgs/icon-location.svg"
-                            alt="Icon"
-                            height={24}
-                            width={24}
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Search Location"
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
-                          onFocus={() => setShowSuggestions(true)}
-                          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                          className="py-5 pr-3 pl-14 w-full rounded-lg text-black border border-border dark:text-white dark:border-dark_border focus:border-black dark:focus:border-white focus-visible:outline-none dark:bg-[#0c121e]"
-                        />
+      <div className="container mx-auto px-4 max-w-screen-xl relative z-10 py-20">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto" data-aos="fade-up">
+          
+          {/* ADVERTISEMENT BANNER SLIDER (Showing right above the heading text) */}
+         {banners.length > 0 && (
+  <div className="w-full max-w-md sm:max-w-lg h-36 sm:h-40 mb-6 relative rounded-xl overflow-hidden shadow-2xl border border-white/20 bg-black/40 backdrop-blur-sm">
+    {banners.map((banner, index) => (
+      <div
+        key={banner.id}
+        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+          index === currentBannerIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+        }`}
+      >
+        <Image
+          src={banner.image}
+          alt={`Ad Banner ${banner.id}`}
+          fill
+          className="object-cover w-full h-full"
+        />
+      </div>
+    ))}
+    {/* Optional dots indicator */}
+    <div className="absolute bottom-2 right-3 z-20 flex gap-1.5">
+      {banners.map((_, idx) => (
+        <span
+          key={idx}
+          className={`h-1.5 rounded-full transition-all ${
+            idx === currentBannerIndex ? 'w-5 bg-primary' : 'w-1.5 bg-white/50'
+          }`}
+        />
+      ))}
+    </div>
+  </div>
+)}
 
-                        {showSuggestions && (
-                          <div className="absolute left-0 right-0 top-full -mt-2 bg-white dark:bg-semidark border border-border rounded-md z-10 max-h-[130px] overflow-y-auto">
-                            <ul className="flex flex-col gap-2 py-4 px-8">
-                              {suggestions.map((item, index) => (
-                                <li
-                                  key={index}
-                                  onClick={() => handleSelect(item)}
-                                >
-                                  <p className="cursor-pointer text-midnight_text dark:text-white text-lg hover:text-black dark:hover:text-white">{item}</p>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                      </div>
-                    </div>
-                <div className="mt-6 flex flex-col-reverse gap-4 md:justify-between">
-                      <div className="flex flex-col md:flex-row md:gap-4 w-full">
-                        <button onClick={handleSearchSell} className="flex-1 py-2 md:py-4 text-lg md:text-xl px-4 md:px-8 bg-black text-white dark:bg-white dark:text-black rounded-lg hover:opacity-90 transition duration-300 mb-2 md:mb-0 md:mr-2">
-                          Search
-                        </button>
-                        <button onClick={handleSearchSell} className="flex-1 py-2 md:py-4 text-lg md:text-xl px-4 md:px-8 bg-black text-white dark:bg-white dark:text-black rounded-lg hover:opacity-90 transition duration-300 text-nowrap">
-                          Advance Search
-                        </button>
-                      </div>
-                      {error && (
-                        <p className="text-red-600 text-sm mt-2 md:mt-0">{error}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {activeTab === "buy" && (
-                  <div className="bg-white dark:bg-darkmode rounded-b-lg rounded-tr-lg shadow-lg p-8 pb-10">
-                    <div className="rounded-lg border-0 my-2">
-                      <div className="relative flex items-center">
-                        <div className="absolute left-0 p-4">
-                          <Image
-                            src="/images/svgs/icon-location.svg"
-                            alt="Icon"
-                            height={24}
-                            width={24}
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Search Location"
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
-                          onFocus={() => setShowSuggestions(true)}
-                          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                          className="py-5 pr-3 pl-14 w-full rounded-lg text-black border border-border dark:text-white dark:border-dark_border focus:border-black dark:focus:border-white focus-visible:outline-none dark:bg-[#0c121e]"
-                        />
-                        {showSuggestions && (
-                          <div className="absolute left-0 right-0 top-full -mt-2 bg-white border border-border rounded-md z-10 max-h-[100px] overflow-y-auto">
-                            <ul className="flex flex-col gap-2 py-4 px-8">
-                              {suggestions.map((item, index) => (
-                                <li
-                                  key={index}
-                                  className="cursor-pointer hover:text-black dark:hover:text-white"
-                                  onClick={() => handleSelect(item)}
-                                >
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-6 flex flex-col-reverse gap-4 md:justify-between">
-                      <div className="flex flex-col md:flex-row md:gap-4 w-full">
-                        <button onClick={handleSearchBuy} className="flex-1 py-2 md:py-4 text-lg md:text-xl px-4 md:px-8 bg-black text-white dark:bg-white dark:text-black rounded-lg hover:opacity-90 transition duration-300 mb-2 md:mb-0 md:mr-2">
-                          Search
-                        </button>
-                        <button onClick={handleSearchBuy} className="flex-1 py-2 md:py-4 text-lg md:text-xl px-4 md:px-8 bg-black text-white dark:bg-white dark:text-black rounded-lg hover:opacity-90 transition duration-300 text-nowrap">
-                          Advance Search
-                        </button>
-                      </div>
-                      {error && (
-                        <p className="text-red-600 text-sm mt-2 md:mt-0">{error}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col justify-start ml-4 mt-8 mb-12 gap-3">
-            </div>
+          {/* Heading & Subtitle */}
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight mb-3">
+              Find Your Dream Property <br />
+              <span className="text-white">in {selectedCountry}</span>
+            </h1>
+            <p className="text-blue-200 text-base md:text-lg font-medium">
+              Luxury villas, penthouses, apartments, and more. Explore properties you can buy or invest in across {selectedCountry}.
+            </p>
           </div>
+
+          {/* Search Box Wrapper */}
+          <div className="w-full max-w-3xl relative text-left">
+            <div className="bg-white dark:bg-semidark rounded-xl shadow-2xl p-2 flex flex-col md:flex-row items-center gap-2">
+              
+              {/* Tab Selector Dropdown (Buy / Rent / Offplan) */}
+              <div className="relative w-full md:w-auto">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="w-full md:w-36 bg-[#0a192f] text-white py-3.5 px-4 rounded-lg flex items-center justify-between font-semibold text-sm uppercase tracking-wider shadow-sm hover:bg-[#112240] transition-colors"
+                >
+                  <span>{activeTab}</span>
+                  <Icon icon="solar:alt-arrow-down-linear" width="18" height="18" className={`transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showDropdown && (
+                  <div className="absolute left-0 top-full mt-1 w-full bg-[#0a192f] border border-border/20 rounded-lg shadow-xl z-30 overflow-hidden flex flex-col">
+                    {['buy', 'rent', 'offplan'].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => {
+                          setActiveTab(tab);
+                          setShowDropdown(false);
+                          setError('');
+                        }}
+                        className={`text-left py-3 px-4 text-sm font-semibold uppercase tracking-wider text-white hover:bg-white/10 transition-colors ${activeTab === tab ? 'bg-white/15' : ''}`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Location Input Field */}
+              <div className="relative flex-1 w-full">
+                <input
+                  type="text"
+                  placeholder="Search area, community or project..."
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  className="w-full py-3.5 pl-4 pr-12 rounded-lg text-midnight_text dark:text-white bg-transparent border border-border dark:border-dark_border focus:outline-none focus:border-primary text-sm"
+                />
+                
+                <button 
+                  onClick={handleSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-primary transition-colors"
+                  aria-label="Search"
+                >
+                  <Icon icon="solar:magnifer-linear" width="20" height="20" />
+                </button>
+
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-semidark border border-border rounded-lg z-30 max-h-48 overflow-y-auto shadow-xl text-left">
+                    <ul className="py-2">
+                      {suggestions
+                        .filter((item: any) => item && item.toLowerCase().includes(location.toLowerCase()))
+                        .map((item, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleSelect(item)}
+                            className="cursor-pointer px-4 py-2 text-sm text-midnight_text dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border transition-colors"
+                          >
+                            {item}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <p className="text-red-400 text-xs mt-2 font-medium bg-black/50 px-3 py-1 rounded-md inline-block text-center">{error}</p>
+            )}
+          </div>
+
         </div>
       </div>
     </section>

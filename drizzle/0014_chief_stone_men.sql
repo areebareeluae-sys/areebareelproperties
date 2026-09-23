@@ -1,0 +1,1 @@
+ALTER TABLE `office_users` ADD `is_active` integer DEFAULT true NOT NULL;

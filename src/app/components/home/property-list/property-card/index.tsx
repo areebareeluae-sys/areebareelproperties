@@ -77,7 +77,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, viewMode }) => {
               </div>
               
               {property.location && (
-                <div className="text-xs bg-[#DAE7FF] dark:bg-zinc-800 text-midnight_text dark:text-gray-200 py-1 px-2.5 rounded-md font-medium w-fit max-w-full truncate">
+                <div className="text-xs bg-[#DAE7FF] dark:bg-zinc-800 text-midnight_text dark:text-white py-1 px-2.5 rounded-md font-medium w-fit max-w-full truncate">
                   📍 {property.location}
                 </div>
               )}
