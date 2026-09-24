@@ -79,7 +79,8 @@ export default function TransferCashPage() {
       const userId = loggedInUser.id || "system_admin";
 
       const payload = {
-        assignmentId: selectedItem.assignmentId,
+        id: selectedItem.id, // Supports both assignmentId and pendingId
+        type: selectedItem.type,
         customerId: selectedItem.customerId,
         cnic: selectedItem.cnic,
         inventoryId: selectedItem.inventoryId,
@@ -114,14 +115,14 @@ export default function TransferCashPage() {
       <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header - Centered & Clean Background */}
-        <div className="bg-white dark:bg-semidark p-6 rounded-2xl">
+        {/* Header */}
+        <div className="bg-white dark:bg-semidark p-6 rounded-2xl shadow-sm">
           <h1 className="text-3xl font-extrabold text-black dark:text-white text-center">Cash Transfer & Dividend Management</h1>
-          <p className="text-xs text-gray-500 mt-1 text-center">Calculate and transfer profit based on customer inventory plans (Gold8*F / Gold8*L)</p>
+          <p className="text-xs text-gray-500 mt-1 text-center">Calculate and transfer profit based on plans and pending dues up to today's date</p>
         </div>
 
-        {/* Filter Box with Auto-formatted CNIC */}
-        <div className="bg-white dark:bg-semidark p-6 rounded-2xl ">
+        {/* Filter Box */}
+        <div className="bg-white dark:bg-semidark p-6 rounded-2xl shadow-sm">
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-1 w-full">
               <label className="block text-xs uppercase font-extrabold mb-2 text-black dark:text-white">Filter by Customer CNIC</label>
@@ -142,18 +143,19 @@ export default function TransferCashPage() {
           {loading ? (
             <div className="p-12 text-center text-xs font-bold text-gray-500">Loading data...</div>
           ) : filteredTransfers.length === 0 ? (
-            <div className="p-12 text-center text-xs text-gray-500 font-bold">No assigned inventory records found for transfer today.</div>
+            <div className="p-12 text-center text-xs text-gray-500 font-bold">No active or due records found for transfer today.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full divide-y divide-gray-200 dark:divide-dark_border text-left text-xs">
                 <thead className="bg-gray-50 dark:bg-darkmode text-black dark:text-white font-extrabold uppercase">
                   <tr>
                     <th className="px-4 py-3">Customer CNIC</th>
-                    <th className="px-4 py-3">Property Name</th>
-                    <th className="px-4 py-3">Plan</th>
-                    <th className="px-4 py-3">Units & Inv. Total Price</th>
-                    <th className="px-4 py-3">Payment Method</th>
-                    <th className="px-4 py-3">Calculated Profit</th>
+                    <th className="px-4 py-3">Property / Detail</th>
+                    <th className="px-4 py-3">Plan / Type</th>
+                    <th className="px-4 py-3">Bank & Account Details</th>
+                    <th className="px-4 py-3">Units & Total</th>
+                    <th className="px-4 py-3">Profit Due Date</th>
+                    <th className="px-4 py-3">Calculated Amount</th>
                     <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
@@ -168,12 +170,15 @@ export default function TransferCashPage() {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-black dark:text-white">
+                        <div className="font-bold">{item.paymentMethod}</div>
+                        <div className="text-gray-500 text-[10px]">A/C: {item.accountNumber} ({item.accountHolderName})</div>
+                      </td>
+                      <td className="px-4 py-4 text-black dark:text-white">
                         <div className="font-bold">{item.customerUnit} Units</div>
                         <div className="text-gray-500 text-[10px]">Total: Rs. {Number(item.totalPrice).toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-4 text-black dark:text-white">
-                        <div className="font-bold uppercase text-blue-600 dark:text-blue-400">{item.paymentMethod}</div>
-                        <div className="text-[10px] text-gray-500 font-mono">{item.accountNumber} ({item.accountHolderName})</div>
+                      <td className="px-4 py-4 font-mono text-gray-600 dark:text-gray-300">
+                        {new Date(item.profitDate).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-4 text-green-600 dark:text-green-400 font-black text-sm">Rs. {item.calculatedAmount?.toLocaleString()}</td>
                       <td className="px-4 py-4 text-right">
@@ -203,15 +208,17 @@ export default function TransferCashPage() {
               <button onClick={() => setIsModalOpen(false)} className="text-xl font-bold hover:opacity-70">&times;</button>
             </div>
 
-            <div className="bg-gray-50 dark:bg-darkmode p-3 rounded-xl border border-gray-200 dark:border-dark_border text-xs space-y-1.5">
+            <div className="bg-gray-50 dark:bg-darkmode p-3.5 rounded-xl border border-gray-200 dark:border-dark_border text-xs space-y-1.5">
               <div><span className="font-bold">CNIC:</span> {selectedItem.cnic}</div>
-              <div><span className="font-bold">Property:</span> {selectedItem.inventoryName}</div>
+              <div><span className="font-bold">Info:</span> {selectedItem.inventoryName}</div>
               <div><span className="font-bold">Plan Type:</span> <span className="px-2 py-0.5 bg-black text-white dark:bg-white dark:text-black rounded font-bold">{selectedItem.plan}</span></div>
-              <div><span className="font-bold">Units & Total:</span> {selectedItem.customerUnit} Units (Rs. {Number(selectedItem.totalPrice).toLocaleString()})</div>
-              <div><span className="font-bold">Payment Method:</span> <span className="text-blue-600 dark:text-blue-400 font-bold">{selectedItem.paymentMethod}</span></div>
-              <div><span className="font-bold">Account Info:</span> <span className="font-mono">{selectedItem.accountNumber}</span> - {selectedItem.accountHolderName}</div>
-              <div className="text-green-600 dark:text-green-400 font-black text-sm pt-1 border-t border-gray-200 dark:border-dark_border mt-1">
-                Calculated Transfer Amount: Rs. {selectedItem.calculatedAmount?.toLocaleString()}
+              <div className="pt-1 border-t border-gray-200 dark:border-dark_border mt-1">
+                <span className="font-bold">Bank:</span> {selectedItem.paymentMethod}
+              </div>
+              <div><span className="font-bold">Account Number:</span> {selectedItem.accountNumber}</div>
+              <div><span className="font-bold">Account Holder:</span> {selectedItem.accountHolderName}</div>
+              <div className="text-green-600 dark:text-green-400 font-black text-sm pt-2 border-t border-gray-200 dark:border-dark_border mt-1">
+                Amount to Transfer: Rs. {selectedItem.calculatedAmount?.toLocaleString()}
               </div>
             </div>
 
@@ -225,18 +232,18 @@ export default function TransferCashPage() {
                   required 
                   value={transactionNumber}
                   onChange={(e) => setTransactionNumber(e.target.value)}
-                  placeholder="Enter bank/jazzcash transaction ID"
+                  placeholder="Enter bank/transaction ID"
                   className="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-dark_border bg-transparent text-black dark:text-white font-bold outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase font-extrabold mb-1">Remarks / Text Message</label>
+                <label className="block text-[11px] uppercase font-extrabold mb-1">Remarks / Transfer Note</label>
                 <textarea 
                   rows={3}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  placeholder="Enter remarks or transfer notes..."
+                  placeholder="Enter remarks, e.g., Sent via online banking..."
                   className="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-dark_border bg-transparent text-black dark:text-white outline-none focus:border-black dark:focus:border-white"
                 ></textarea>
               </div>

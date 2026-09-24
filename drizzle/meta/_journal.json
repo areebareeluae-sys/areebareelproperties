@@ -197,6 +197,41 @@
       "when": 1790183493952,
       "tag": "0027_silky_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1790191082895,
+      "tag": "0028_lively_cobalt_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1790192516408,
+      "tag": "0029_bizarre_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1790194287591,
+      "tag": "0030_ambitious_pepper_potts",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1790267410704,
+      "tag": "0031_strong_daredevil",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1790280947911,
+      "tag": "0032_warm_black_bolt",
+      "breakpoints": true
     }
   ]
 }

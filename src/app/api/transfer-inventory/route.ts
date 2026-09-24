@@ -1,22 +1,20 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { inventoryProfit, inventory, activityLogs } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { inventoryProfit, inventory, activityLogs, customerPins } from '@/db/schema';
+import { eq, and, sql, not } from 'drizzle-orm';
 
-// 1. GET: Fetch active customer assignment by CNIC OR fetch all available inventories list
+// 1. GET: Fetch list of inventories or active assignments by CNIC
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const cnic = searchParams.get('cnic');
     const fetchInventories = searchParams.get('fetchInventories');
 
-    // Action A: Fetch all inventories with unit calculations (considering only Active inventoryProfit records)
     if (fetchInventories === 'true') {
       const allInventories = await db.select().from(inventory);
 
       const formattedInventories = await Promise.all(
         allInventories.map(async (inv: any) => {
-          // Sirf 'Active' status wale assigned units ka sum nikala jaye ga
           const assignedResult = await db
             .select({
               totalAssigned: sql<number>`COALESCE(SUM(${inventoryProfit.customerUnit}), 0)`
@@ -30,12 +28,8 @@ export async function GET(req: Request) {
             );
 
           const assignedUnits = Number(assignedResult[0]?.totalAssigned || 0);
-          
-          // Price ko 100,000 se divide kar ke total units nikal liye
           const propertyPrice = Number(inv.price || 0);
           const totalUnits = propertyPrice > 0 ? Math.round(propertyPrice / 100000) : 100;
-          
-          // Available units calculation
           const remainingUnits = Math.max(0, totalUnits - assignedUnits);
 
           return {
@@ -43,8 +37,7 @@ export async function GET(req: Request) {
             property_title: inv.property_title || 'Untitled Property',
             totalUnits: totalUnits,
             remainingUnits: remainingUnits,
-            inventoryPrice: propertyPrice, 
-            totalPrice: propertyPrice,
+            price: propertyPrice,
           };
         })
       );
@@ -52,7 +45,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, inventories: formattedInventories }, { status: 200 });
     }
 
-    // Action B: Fetch customer assignment details by CNIC (where status is 'Active')
     if (!cnic) {
       return NextResponse.json({ success: false, message: 'CNIC is required' }, { status: 400 });
     }
@@ -65,51 +57,52 @@ export async function GET(req: Request) {
           eq(inventoryProfit.cnic, cnic),
           eq(inventoryProfit.status, 'Active')
         )
-      )
-      .limit(1);
+      );
 
     if (assignments.length === 0) {
       return NextResponse.json({ 
         success: false, 
-        message: 'No active assignment found for this CNIC.' 
+        message: 'No active assignments found for this CNIC.' 
       }, { status: 200 });
     }
 
-    const item = assignments[0];
-    const inv = await db
-      .select()
-      .from(inventory)
-      .where(eq(inventory.id, item.inventoryId))
-      .limit(1);
+    const formattedAssignments = await Promise.all(
+      assignments.map(async (item) => {
+        const inv = await db
+          .select()
+          .from(inventory)
+          .where(eq(inventory.id, item.inventoryId))
+          .limit(1);
 
-    const assignmentData = {
-      assignmentId: item.id,
-      customerId: item.customerId,
-      cnic: item.cnic,
-      inventoryId: item.inventoryId,
-      inventoryName: inv[0]?.property_title || 'N/A',
-      customerUnit: item.customerUnit,
-      inventoryPrice: item.inventoryPrice,
-      totalPrice: item.totalPrice,
-      plan: item.plan,
-      paymentMethod: item.paymentMethod,
-    };
+        return {
+          assignmentId: item.id,
+          customerId: item.customerId,
+          cnic: item.cnic,
+          inventoryId: item.inventoryId,
+          inventoryName: inv[0]?.property_title || 'N/A',
+          customerUnit: item.customerUnit,
+          inventoryPrice: item.inventoryPrice,
+          totalPrice: item.totalPrice,
+          plan: item.plan,
+        };
+      })
+    );
 
-    return NextResponse.json({ success: true, assignment: assignmentData }, { status: 200 });
+    return NextResponse.json({ success: true, assignments: formattedAssignments }, { status: 200 });
   } catch (error) {
     console.error('Fetch Transfer Assignment Error:', error);
     return NextResponse.json({ success: false, message: 'Server Error' }, { status: 500 });
   }
 }
 
-// 2. POST: Execute inventory shift & update totalPrice
+// 2. POST: Execute partial or full unit transfer with merging & auto-deletion of empty rows
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { assignmentId, newInventoryId, newTotalPrice, userId, remarks } = body;
+    const { assignmentId, newInventoryId, transferUnits, pin, userId, remarks } = body;
 
-    if (!assignmentId || !newInventoryId || newTotalPrice === undefined || !userId) {
-      return NextResponse.json({ success: false, message: 'Missing required fields!' }, { status: 400 });
+    if (!assignmentId || !newInventoryId || !transferUnits || !pin || !userId) {
+      return NextResponse.json({ success: false, message: 'Missing required fields including PIN!' }, { status: 400 });
     }
 
     // A. Get current assignment record
@@ -123,9 +116,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Assignment record not found!' }, { status: 404 });
     }
 
-    const requiredUnits = Number(currentAssignment[0].customerUnit || 0);
+    const assignmentRow = currentAssignment[0];
+    const customerCnic = assignmentRow.cnic;
+    const existingUnits = Number(assignmentRow.customerUnit || 0);
+    const unitsToMove = Number(transferUnits);
 
-    // B. Verify target inventory exists and check remaining active units
+    if (unitsToMove > existingUnits) {
+      return NextResponse.json({ success: false, message: `Cannot transfer ${unitsToMove} units. Customer only has ${existingUnits} units in this assignment!` }, { status: 400 });
+    }
+
+    // B. Verify Customer PIN from customer_pins table
+    const pinRecord = await db
+      .select()
+      .from(customerPins)
+      .where(eq(customerPins.cnic, customerCnic))
+      .limit(1);
+
+    if (pinRecord.length === 0 || pinRecord[0].pin !== pin) {
+      return NextResponse.json({ success: false, message: 'Invalid customer PIN verification failed!' }, { status: 401 });
+    }
+
+    // C. Verify target inventory exists and check available units
     const targetInv = await db
       .select()
       .from(inventory)
@@ -135,6 +146,9 @@ export async function POST(req: Request) {
     if (targetInv.length === 0) {
       return NextResponse.json({ success: false, message: 'Target inventory not found!' }, { status: 404 });
     }
+
+    const targetInvItem = targetInv[0];
+    const targetPricePerUnit = 100000;
 
     const assignedResult = await db
       .select({
@@ -148,38 +162,121 @@ export async function POST(req: Request) {
         )
       );
 
-    const totalAssigned = Number(assignedResult[0]?.totalAssigned || 0);
-    const targetPrice = Number(targetInv[0].price || 0);
-    const totalUnitsInTarget = targetPrice > 0 ? Math.round(targetPrice / 100000) : 100;
-    const availableUnits = totalUnitsInTarget - totalAssigned;
+    const totalAssignedInTarget = Number(assignedResult[0]?.totalAssigned || 0);
+    const targetPropertyPrice = Number(targetInvItem.price || 0);
+    const totalUnitsInTarget = targetPropertyPrice > 0 ? Math.round(targetPropertyPrice / 100000) : 100;
+    const availableUnitsInTarget = totalUnitsInTarget - totalAssignedInTarget;
 
-    if (requiredUnits > availableUnits) {
+    if (unitsToMove > availableUnitsInTarget) {
       return NextResponse.json({
         success: false,
-        message: `Target inventory does not have enough units available! Required: ${requiredUnits}, Available: ${availableUnits}`
+        message: `Target inventory does not have enough units! Required: ${unitsToMove}, Available: ${availableUnitsInTarget}`
       }, { status: 400 });
     }
 
-    // C. Update inventoryId and totalPrice
-    await db
-      .update(inventoryProfit)
-      .set({
-        inventoryId: newInventoryId,
-        totalPrice: Number(newTotalPrice), 
-      })
-      .where(eq(inventoryProfit.id, assignmentId));
+    // D. Check if target inventory already has an active row with the SAME PLAN for this customer (excluding current row)
+    const existingTargetRows = await db
+      .select()
+      .from(inventoryProfit)
+      .where(
+        and(
+          eq(inventoryProfit.cnic, customerCnic),
+          eq(inventoryProfit.inventoryId, newInventoryId),
+          eq(inventoryProfit.plan, assignmentRow.plan),
+          eq(inventoryProfit.status, 'Active'),
+          not(eq(inventoryProfit.id, assignmentId))
+        )
+      );
 
-    // D. Create Activity Log entry
+    const targetRow = existingTargetRows.length > 0 ? existingTargetRows[0] : null;
+
+    if (unitsToMove === existingUnits) {
+      // --- FULL TRANSFER (All units moved) ---
+      if (targetRow) {
+        // Target row with same plan exists: Merge units into target row and DELETE source row
+        const updatedUnits = Number(targetRow.customerUnit) + unitsToMove;
+        const updatedInvPrice = targetPricePerUnit * updatedUnits;
+
+        await db
+          .update(inventoryProfit)
+          .set({
+            customerUnit: updatedUnits,
+            inventoryPrice: updatedInvPrice,
+          })
+          .where(eq(inventoryProfit.id, targetRow.id));
+
+        // Delete source empty row completely
+        await db
+          .delete(inventoryProfit)
+          .where(eq(inventoryProfit.id, assignmentId));
+      } else {
+        // Target row does not exist: Simply update source row to point to new inventory & price
+        const newInventoryPrice = targetPricePerUnit * unitsToMove;
+        await db
+          .update(inventoryProfit)
+          .set({
+            inventoryId: newInventoryId,
+            inventoryPrice: newInventoryPrice,
+            totalPrice: targetPropertyPrice,
+          })
+          .where(eq(inventoryProfit.id, assignmentId));
+      }
+    } else {
+      // --- PARTIAL TRANSFER (Some units moved, some remain) ---
+      const remainingOldUnits = existingUnits - unitsToMove;
+      const oldPricePerUnit = Number(assignmentRow.inventoryPrice) / existingUnits;
+      const oldInventoryPrice = oldPricePerUnit * remainingOldUnits;
+
+      // Update source row with remaining units
+      await db
+        .update(inventoryProfit)
+        .set({
+          customerUnit: remainingOldUnits,
+          inventoryPrice: oldInventoryPrice,
+        })
+        .where(eq(inventoryProfit.id, assignmentId));
+
+      if (targetRow) {
+        // Target row with same plan exists: Merge transferred units into target row
+        const updatedUnits = Number(targetRow.customerUnit) + unitsToMove;
+        const updatedInvPrice = targetPricePerUnit * updatedUnits;
+
+        await db
+          .update(inventoryProfit)
+          .set({
+            customerUnit: updatedUnits,
+            inventoryPrice: updatedInvPrice,
+          })
+          .where(eq(inventoryProfit.id, targetRow.id));
+      } else {
+        // Target row does not exist: Create a new row for target inventory
+        await db.insert(inventoryProfit).values({
+          id: crypto.randomUUID(),
+          customerId: assignmentRow.customerId,
+          cnic: customerCnic,
+          inventoryId: newInventoryId,
+          inventoryPrice: targetPricePerUnit * unitsToMove,
+          totalPrice: targetPropertyPrice,
+          customerUnit: unitsToMove,
+          plan: assignmentRow.plan,
+          date: assignmentRow.date,
+          profitDate: assignmentRow.profitDate,
+          status: 'Active',
+        });
+      }
+    }
+
+    // E. Log Activity
     await db.insert(activityLogs).values({
       id: crypto.randomUUID(),
       officeUserId: userId,
-      action: 'SHIFT_CUSTOMER_INVENTORY',
-      remarks: remarks || `Shifted customer (CNIC: ${currentAssignment[0].cnic}) to new inventory ID: ${newInventoryId}`,
+      action: 'SHIFT_CUSTOMER_INVENTORY_UNITS',
+      remarks: remarks || `Successfully transferred ${unitsToMove} units for CNIC: ${customerCnic} with PIN verification.`,
     });
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Customer successfully shifted and activity logged!' 
+      message: 'Customer units successfully transferred, merged where applicable, and logged!' 
     }, { status: 200 });
 
   } catch (error) {

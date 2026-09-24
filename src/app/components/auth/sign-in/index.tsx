@@ -168,7 +168,7 @@ const Signin = () => {
             <input
               required
               type="text"
-              placeholder="33330-3333327-8 or 03049899037"
+              placeholder="33333-3333333-3 "
               value={loginData.identifier}
               onChange={handleIdentifierChange}
               maxLength={isNumericInput ? 15 : undefined}

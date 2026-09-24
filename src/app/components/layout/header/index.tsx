@@ -215,12 +215,14 @@ const Header: React.FC = () => {
 
                         {userDept === 'dept_3' && (
                           <>
-                            <Link href="/admin/signup" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Create Client User</Link>
                             <Link href="/admin/my-inventory" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Add Inventory</Link>
                             <Link href="/admin/my-properties" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Add Property</Link>
                             <Link href="/admin/close-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Close Client</Link>
                             <Link href="/admin/banners" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">add Banners</Link>
-                            <Link href="/admin/reactivate-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-green-500 hover:bg-gray-100 dark:hover:bg-dark_border">Open Client</Link>
+                            <Link href="/admin/customer-payment" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Add Customer Account</Link>
+                             <Link href="/admin/cash-received" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Cash Received</Link>
+                             <Link href="/admin/cash-received/cash-report" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Cash Report</Link>
+
                             <Link href="/admin/cnic-status" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-blue-500 hover:bg-gray-100 dark:hover:bg-dark_border">CNIC Status</Link>
                             <Link href="/admin/deactivate-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Deactivate Client</Link>
                           </>
@@ -229,12 +231,15 @@ const Header: React.FC = () => {
                         {(!['dept_1', 'dept_2', 'dept_3'].includes(userDept)) && (
                           <>
                             <Link href="/admin/office-users/create" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Create Office User</Link>
-                            <Link href="/admin/signup" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Create Client User</Link>
                             <Link href="/admin/my-inventory" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Add Inventory</Link>
                             <Link href="/admin/my-properties" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-dark_border">Add Property</Link>
-                            <Link href="/admin/close-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Close Client</Link>
-                            <Link href="/admin/banners" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">add Banners</Link>
-                            <Link href="/admin/reactivate-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-green-500 hover:bg-gray-100 dark:hover:bg-dark_border">Open Client</Link>
+                           <Link href="/admin/banners" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark hover:bg-gray-100 dark:hover:bg-dark_border">Add Banners</Link>
+                            <Link href="/admin/close-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Close Investment</Link>
+                            
+                             <Link href="/admin/customer-payment" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-dark hover:bg-gray-100 dark:hover:bg-dark_border">Add Customer Account</Link>
+                             <Link href="/admin/cash-received" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-green-500 hover:bg-gray-100 dark:hover:bg-dark_border">Cash Received</Link>
+                                                        <Link href="/admin/cash-received/cash-report" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-green-500 hover:bg-gray-100 dark:hover:bg-dark_border">Cash Report</Link>
+
                             <Link href="/admin/cnic-status" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-blue-500 hover:bg-gray-100 dark:hover:bg-dark_border">CNIC Status</Link>
                             <Link href="/admin/deactivate-client" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-dark_border">Deactivate Client</Link>
                           </>
@@ -303,7 +308,6 @@ const Header: React.FC = () => {
                     <Link href="/admin/applications" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Client Applications</Link>
                     <Link href="/admin/assign-inventory" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Assign Inventory</Link>
                     <Link href="/admin/transfer-inventory" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Transfer Inventory</Link>
-                    <Link href="/admin/upgrade-inventory" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Upgrade Inventory</Link>
                     <Link href="/admin/transfer-cash" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Transfer Cash</Link>            
                     <Link href="/admin/TransactionHistoryPage" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">TransactionHistory</Link>              
                   </>
@@ -315,7 +319,6 @@ const Header: React.FC = () => {
                     <Link href="/admin/applications" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Client Applications</Link>
                     <Link href="/admin/assign-inventory" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Assign Inventory</Link>
                     <Link href="/admin/transfer-inventory" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Transfer Inventory</Link>
-                    <Link href="/admin/upgrade-inventory" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Upgrade Inventory</Link>
                     <Link href="/admin/transfer-cash" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">Transfer Cash</Link>            
                     <Link href="/admin/TransactionHistoryPage" className="text-sm font-medium text-dark dark:text-white hover:text-blue-600">TransactionHistory</Link>              
                   </>
@@ -365,13 +368,15 @@ const Header: React.FC = () => {
                   <Link href="/admin/cnic-status" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">CNIC Status</Link>
                   <Link href="/admin/my-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Add Inventory</Link>
                   <Link href="/admin/my-properties" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Add Property</Link>
+                   <Link href="/admin/banners" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Add Banners</Link>
                   <Link href="/admin/assign-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Assign Inventory</Link>
                   <Link href="/admin/transfer-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Transfer Inventory</Link>
                   <Link href="/admin/TransactionHistoryPage" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">TransactionHistory</Link>
-                  <Link href="/admin/upgrade-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Upgrade Inventory</Link>
                   <Link href="/admin/close-client" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Close Client</Link>
-                           <Link href="/admin/banners" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Add Banners</Link>
-        
+                                   <Link href="/admin/customer-payment" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Add Customer Account</Link>
+                                           <Link href="/admin/cash-received" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Cash Received</Link>
+                                           <Link href="/admin/cash-received/cash-report" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Cash Report</Link>
+
                   <Link href="/admin/reactivate-client" onClick={() => setNavbarOpen(false)} className="text-green-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Reactivate Client</Link>
                   <Link href="/admin/deactivate-client" onClick={() => setNavbarOpen(false)} className="text-red-500 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Deactivate Client</Link>
                 </>
@@ -383,7 +388,6 @@ const Header: React.FC = () => {
                   <Link href="/admin/applications" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Client Applications</Link>
                   <Link href="/admin/assign-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Assign Inventory</Link>
                   <Link href="/admin/transfer-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Transfer Inventory</Link>
-                  <Link href="/admin/upgrade-inventory" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Upgrade Inventory</Link>
                   <Link href="/admin/transfer-cash" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Transfer Cash</Link>
                   <Link href="/admin/TransactionHistoryPage" onClick={() => setNavbarOpen(false)} className="text-dark dark:text-white py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark_border text-sm font-medium w-full">Transaction History</Link>           
                 </>

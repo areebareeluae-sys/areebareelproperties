@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { formApplications, inventoryProfit } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { formApplications, inventoryProfit, inventory } from '@/db/schema';
+import { eq, sql } from 'drizzle-orm';
 
 export async function GET(req: Request) {
   try {
@@ -12,21 +12,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, message: 'CNIC parameter is required' }, { status: 400 });
     }
 
-    // 1. Check if this CNIC already exists in inventory_profit (Already Assigned Check)
-    const existingAssignment = await db
-      .select()
-      .from(inventoryProfit)
-      .where(eq(inventoryProfit.cnic, cnic))
-      .limit(1);
-
-    if (existingAssignment.length > 0) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Already Property Assigned! This customer already owns a property unit.' 
-      }, { status: 400 });
-    }
-
-    // 2. Check Customer in formApplications table
+    // 1. Check Customer in formApplications table first
     const customers = await db
       .select()
       .from(formApplications)
@@ -39,7 +25,7 @@ export async function GET(req: Request) {
 
     const customer = customers[0];
 
-    // 3. Status check: Agar status Complete ya Approved nahi hai
+    // 2. Status check: Agar status Complete, Approved ya Completed nahi hai
     const currentStatus = customer.status ? customer.status.toLowerCase() : 'pending';
     if (currentStatus !== 'complete' && currentStatus !== 'approved' && currentStatus !== 'completed') {
       return NextResponse.json({ 
@@ -48,12 +34,36 @@ export async function GET(req: Request) {
       }, { status: 400 });
     }
 
+    // 3. Fetch all existing assigned properties and units for this CNIC (Allows multiple property assignments)
+    const existingAssignments = await db
+      .select({
+        propertyTitle: inventory.property_title,
+        units: inventoryProfit.customerUnit,
+        plan: inventoryProfit.plan,
+        date: inventoryProfit.date,
+      })
+      .from(inventoryProfit)
+      .innerJoin(inventory, eq(inventoryProfit.inventoryId, inventory.id))
+      .where(eq(inventoryProfit.cnic, cnic));
+
+    const totalAssignedUnits = existingAssignments.reduce((sum, item) => sum + item.units, 0);
+
+    // Optional Check: Agar koi user 20 units ki absolute limit poori kar chuka hai
+    if (totalAssignedUnits >= 20) {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Maximum limit reached! This customer already owns 20 units (the maximum allowed per CNIC).` 
+      }, { status: 400 });
+    }
+
     const formattedCustomer = {
       id: customer.id,
       name: customer.fullName,
       phone: customer.mobile,
       cnic: customer.cnic,
-      status: customer.status
+      status: customer.status,
+      totalAssignedUnits,
+      assignments: existingAssignments
     };
 
     return NextResponse.json({ success: true, customer: formattedCustomer }, { status: 200 });

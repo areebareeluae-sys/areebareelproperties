@@ -46,6 +46,8 @@ interface InventoryProfit {
   date: string;
   profitDate: string;
   status: string;
+  propertyTitle: string;
+  location: string;
 }
 
 interface Transaction {
@@ -55,6 +57,7 @@ interface Transaction {
   remarks: string;
   date: string;
   plan: string;
+  propertyTitle: string;
 }
 
 export default function UserTransactionsPage() {
@@ -64,7 +67,8 @@ export default function UserTransactionsPage() {
   const [applications, setApplications] = useState<FormApplication[]>([]);
   const [inventoryDetails, setInventoryDetails] = useState<InventoryProfit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
   // Pagination state for transactions table
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
@@ -93,7 +97,7 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
     }
 
     const parsedUser = JSON.parse(storedUser);
-    setUserData(parsedUser);
+    setUserDateSafe(parsedUser);
 
     const targetCnic = parsedUser.cnic;
     if (!targetCnic) {
@@ -121,6 +125,10 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
     fetchUserData();
   }, [router]);
 
+  const setUserDateSafe = (pUser: any) => {
+    setUserData(pUser);
+  };
+
   // Pagination calculations
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -146,7 +154,7 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
             <p className="text-sm text-gray-500">Complete record from form applications and active investment plans.</p>
           </div>
 
-          {/* Form Applications Data - Showing ALL Fields */}
+          {/* Form Applications Data */}
           <div className="space-y-4">
             <h2 className="text-xl font-bold border-b border-border dark:border-dark_border pb-2">Full Application Record</h2>
             {applications.length === 0 ? (
@@ -155,7 +163,6 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
               applications.map((app) => (
                 <div key={app.id} className="p-5 rounded-xl border border-border dark:border-dark_border bg-gray-50 dark:bg-black/20 space-y-4 text-sm">
                   
-                  {/* Basic Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6">
                     <div><span className="text-gray-400 font-medium">Name :</span> <span className="font-bold text-base ml-2">{app.fullName}</span></div>
                     <div><span className="text-gray-400 font-medium">Application Number :</span> <span className="font-mono font-semibold ml-2">{app.appNo}</span></div>
@@ -176,9 +183,8 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
                   {/* Financial & Household Info */}
                   <div className="pt-3 border-t border-border dark:border-dark_border/50">
-                    <h3 className="font-bold text-xs uppercase text-black mb-2">Financial & Household Information</h3>
+                    <h3 className="font-bold text-xs uppercase text-black dark:text-white mb-2">Financial & Household Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      {/* <div><span className="text-gray-400 font-medium">Applicant Income:</span> Rs. {app.applicantIncome?.toLocaleString() || 0}</div> */}
                       <div><span className="text-gray-400 font-medium">Household Income:</span> Rs. {app.householdIncome?.toLocaleString() || 0}</div>
                       <div><span className="text-gray-400 font-medium">Income Type:</span> {app.applicantIncomeType || "N/A"}</div>
                       <div><span className="text-gray-400 font-medium">Living Arrangement:</span> {app.livingArrangement || "N/A"}</div>
@@ -191,7 +197,7 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
                   {/* Nominee Details */}
                   <div className="pt-3 border-t border-border dark:border-dark_border/50">
-                    <h3 className="font-bold text-xs uppercase text-black mb-2">Nominee Details</h3>
+                    <h3 className="font-bold text-xs uppercase text-black dark:text-white mb-2">Nominee Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div><span className="text-gray-400 font-medium">Nominee Name :</span> {app.nomineeName || "N/A"}</div>
                       <div><span className="text-gray-400 font-medium">Nominee Relation :</span> {app.nomineeRelation || "N/A"}</div>
@@ -200,81 +206,82 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
                     </div>
                   </div>
 
-                  {/* Documents & Declaration Links / Status */}
-        {/* Images Preview Section */}
-<div className="pt-3 border-t border-border dark:border-dark_border/50 flex flex-wrap gap-4 items-center">
-  <div>
-    <span className="text-gray-400 font-medium block text-xs mb-1">Declaration Accepted:</span> 
-    <span className={app.declarationAccepted ? "text-green-600 font-bold text-sm" : "text-red-500 font-bold text-sm"}>
-      {app.declarationAccepted ? "Yes" : "No"}
-    </span>
-  </div>
+                  {/* Images Preview Section */}
+                  <div className="pt-3 border-t border-border dark:border-dark_border/50 flex flex-wrap gap-4 items-center">
+                    <div>
+                      <span className="text-gray-400 font-medium block text-xs mb-1">Declaration Accepted:</span> 
+                      <span className={app.declarationAccepted ? "text-green-600 font-bold text-sm" : "text-red-500 font-bold text-sm"}>
+                        {app.declarationAccepted ? "Yes" : "No"}
+                      </span>
+                    </div>
 
-  {app.photoUrl && (
-    <div>
-      <span className="text-gray-400 font-medium block text-xs mb-1">Profile Photo</span>
-      <img 
-        src={app.photoUrl} 
-        alt="Profile" 
-        className="w-16 h-16 object-cover rounded-lg border border-border cursor-pointer hover:opacity-85 transition" 
-        onClick={() => setSelectedImage(app.photoUrl)} 
-      />
-    </div>
-  )}
+                    {app.photoUrl && (
+                      <div>
+                        <span className="text-gray-400 font-medium block text-xs mb-1">Profile Photo</span>
+                        <img 
+                          src={app.photoUrl} 
+                          alt="Profile" 
+                          className="w-16 h-16 object-cover rounded-lg border border-border cursor-pointer hover:opacity-85 transition" 
+                          onClick={() => setSelectedImage(app.photoUrl)} 
+                        />
+                      </div>
+                    )}
 
-  {app.cnicFrontUrl && (
-    <div>
-      <span className="text-gray-400 font-medium block text-xs mb-1">CNIC Front</span>
-      <img 
-        src={app.cnicFrontUrl} 
-        alt="CNIC Front" 
-        className="w-24 h-16 object-cover rounded-lg border border-border cursor-pointer hover:opacity-85 transition" 
-        onClick={() => setSelectedImage(app.cnicFrontUrl)} 
-      />
-    </div>
-  )}
+                    {app.cnicFrontUrl && (
+                      <div>
+                        <span className="text-gray-400 font-medium block text-xs mb-1">CNIC Front</span>
+                        <img 
+                          src={app.cnicFrontUrl} 
+                          alt="CNIC Front" 
+                          className="w-24 h-16 object-cover rounded-lg border border-border cursor-pointer hover:opacity-85 transition" 
+                          onClick={() => setSelectedImage(app.cnicFrontUrl)} 
+                        />
+                      </div>
+                    )}
 
-  {app.cnicBackUrl && (
-    <div>
-      <span className="text-gray-400 font-medium block text-xs mb-1">CNIC Back</span>
-      <img 
-        src={app.cnicBackUrl} 
-        alt="CNIC Back" 
-        className="w-24 h-16 object-cover rounded-lg border border-border cursor-pointer hover:opacity-85 transition" 
-        onClick={() => setSelectedImage(app.cnicBackUrl)} 
-      />
-    </div>
-  )}
-</div>
+                    {app.cnicBackUrl && (
+                      <div>
+                        <span className="text-gray-400 font-medium block text-xs mb-1">CNIC Back</span>
+                        <img 
+                          src={app.cnicBackUrl} 
+                          alt="CNIC Back" 
+                          className="w-24 h-16 object-cover rounded-lg border border-border cursor-pointer hover:opacity-85 transition" 
+                          onClick={() => setSelectedImage(app.cnicBackUrl)} 
+                        />
+                      </div>
+                    )}
+                  </div>
 
                 </div>
               ))
             )}
           </div>
-{/* Image Preview Modal */}
-{selectedImage && (
-  <div 
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-    onClick={() => setSelectedImage(null)}
-  >
-    <div className="relative max-w-4xl max-h-[90vh]">
-      <button 
-        className="absolute -top-10 right-0 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center font-bold hover:bg-red-700 transition"
-        onClick={() => setSelectedImage(null)}
-      >
-        &times;
-      </button>
-      <img 
-        src={selectedImage} 
-        alt="Enlarged Preview" 
-        className="max-w-full max-h-[85vh] object-contain rounded-xl border border-white/20 shadow-2xl" 
-      />
-    </div>
-  </div>
-)}
+
+          {/* Image Preview Modal */}
+          {selectedImage && (
+            <div 
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+              onClick={() => setSelectedImage(null)}
+            >
+              <div className="relative max-w-4xl max-h-[90vh]">
+                <button 
+                  className="absolute -top-10 right-0 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center font-bold hover:bg-red-700 transition"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  &times;
+                </button>
+                <img 
+                  src={selectedImage} 
+                  alt="Enlarged Preview" 
+                  className="max-w-full max-h-[85vh] object-contain rounded-xl border border-white/20 shadow-2xl" 
+                />
+              </div>
+            </div>
+          )}
+
           {/* Investment & Payment Information */}
           <div className="mt-6 pt-6 border-t border-border dark:border-dark_border">
-            <h2 className="text-xl font-bold mb-4">Investment & Payment Method Details</h2>
+            <h2 className="text-xl font-bold mb-4">Investment, Property & Plan Details</h2>
             {inventoryDetails.length === 0 ? (
               <p className="text-gray-400 text-sm">No active inventory or payment details found.</p>
             ) : (
@@ -283,18 +290,18 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
                   <div key={item.id} className="p-4 rounded-xl border border-border dark:border-dark_border bg-gray-50 dark:bg-black/20 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-lg text-primary">{item.plan} Plan</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${item.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 text-gray-700'}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${item.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 text-gray-750'}`}>
                         {item.status}
                       </span>
                     </div>
                     <div className="text-sm space-y-1">
+                      <p><span className="text-gray-400">Property:</span> <span className="font-semibold text-black dark:text-white">{item.propertyTitle}</span></p>
+                      <p><span className="text-gray-400">Location:</span> {item.location}</p>
+                      <p><span className="text-gray-400">Property Price:</span> Rs. {item.totalPrice.toLocaleString()}</p>
                       <p><span className="text-gray-400">Units:</span> {item.customerUnit}</p>
-                      <p><span className="text-gray-400">Total Price:</span> Rs. {item.totalPrice.toLocaleString()}</p>
-                      <p><span className="text-gray-400">Payment Method:</span> <span className="font-medium uppercase text-blue-600 dark:text-blue-400">{item.paymentMethod}</span></p>
-                      {item.accountNumber && <p><span className="text-gray-400">Account Number:</span> <span className="font-mono">{item.accountNumber}</span></p>}
-                      {item.accountHolderName && <p><span className="text-gray-400">Account Holder:</span> {item.accountHolderName}</p>}
+                       <p><span className="text-gray-400">Units Price:</span> {(item.customerUnit * 100000).toLocaleString()}</p>
                       <p><span className="text-gray-400">Investment Date:</span> {formatDate(item.date)}</p>
-                      <p><span className="text-gray-400">Rent Date:</span> <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatDate(item.profitDate)}</span></p>
+                      <p><span className="text-gray-400">Next Profit Date:</span> <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatDate(item.profitDate)}</span></p>
                     </div>
                   </div>
                 ))}
@@ -303,7 +310,7 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
           </div>
         </div>
 
-        {/* Transaction History DataGrid with Pagination */}
+        {/* Transaction History DataGrid with Property Column */}
         <div className="bg-white dark:bg-semidark p-6 sm:p-8 rounded-2xl shadow-lg border border-border dark:border-dark_border">
           <h2 className="text-xl font-bold mb-4">Profit Payout Transaction History</h2>
           {transactions.length === 0 ? (
@@ -315,6 +322,7 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
                   <thead>
                     <tr className="border-b border-border dark:border-dark_border text-gray-400 uppercase text-xs">
                       <th className="py-3 px-4">Date</th>
+                      <th className="py-3 px-4">Property / Asset</th>
                       <th className="py-3 px-4">Plan</th>
                       <th className="py-3 px-4">Amount</th>
                       <th className="py-3 px-4">Transaction / Slip #</th>
@@ -325,6 +333,7 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null);
                     {currentTransactions.map((tx) => (
                       <tr key={tx.id} className="border-b border-border dark:border-dark_border hover:bg-gray-50 dark:hover:bg-black/10 transition">
                         <td className="py-3 px-4">{formatDate(tx.date)}</td>
+                        <td className="py-3 px-4 font-semibold text-black dark:text-white">{tx.propertyTitle}</td>
                         <td className="py-3 px-4 font-medium">{tx.plan}</td>
                         <td className="py-3 px-4 text-green-600 dark:text-green-400 font-bold">Rs. {tx.calculatedAmount.toLocaleString()}</td>
                         <td className="py-3 px-4 font-mono text-xs">{tx.transactionNumber}</td>

@@ -6,6 +6,7 @@ import Loader from "../../components/shared/Loader";
 export default function InventoryAssignmentPage() {
   const [inventories, setInventories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false); // Added loading state for submit button
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,11 +24,26 @@ export default function InventoryAssignmentPage() {
   // Assign Form Data
   const [assignForm, setAssignForm] = useState({
     customerUnit: "2",
-    plan: "Gold8*F",
-    paymentMethod: "By Hand",
-    accountNumber: "",
-    accountHolderName: ""
+    plan: "Dual_Benefit"
   });
+
+  // CNIC Auto-formatting function (33303-3332783-9)
+  const handleCnicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 13) value = value.slice(0, 13);
+
+    let formatted = "";
+    if (value.length > 5) {
+      formatted = value.slice(0, 5) + "-" + value.slice(5, 12);
+      if (value.length > 12) {
+        formatted += "-" + value.slice(12, 13);
+      }
+    } else {
+      formatted = value;
+    }
+
+    setCnicInput(formatted);
+  };
 
   // Fetch Inventories
   const fetchInventories = async () => {
@@ -58,19 +74,19 @@ export default function InventoryAssignmentPage() {
     setSelectedInventory(inv);
     setCnicInput("");
     setCustomerData(null);
-    setAssignForm({ customerUnit: "2", plan: "Gold8*F", paymentMethod: "By Hand", accountNumber: "", accountHolderName: "" });
+    setAssignForm({ customerUnit: "2", plan: "Dual_Benefit" });
     setIsModalOpen(true);
   };
 
   const handleVerifyCnic = async () => {
-    if (!cnicInput.trim()) {
-      toast.error("Please enter a valid CNIC");
+    if (!cnicInput.trim() || cnicInput.length < 15) {
+      toast.error("Please enter a complete 13-digit CNIC");
       return;
     }
 
     try {
       setFetchingCustomer(true);
-      const res = await fetch(`/api/customers/verify-cnic?cnic=${cnicInput}`);
+      const res = await fetch(`/api/customers/verify-cnic?cnic=${encodeURIComponent(cnicInput)}`);
       const data = await res.json();
       
       if (data.success && data.customer) {
@@ -101,11 +117,12 @@ export default function InventoryAssignmentPage() {
     }
 
     if (units > selectedInventory.pendingUnit) {
-      toast.error("Assigned units cannot exceed pending units!");
+      toast.error("Assigned units cannot exceed pending units of this inventory!");
       return;
     }
 
     try {
+      setSubmitting(true); // Start loading on button click
       const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
       const payload = {
@@ -113,9 +130,6 @@ export default function InventoryAssignmentPage() {
         cnic: customerData.cnic,
         customerUnit: units,
         plan: assignForm.plan,
-        paymentMethod: assignForm.paymentMethod,
-        accountNumber: assignForm.accountNumber,
-        accountHolderName: assignForm.accountHolderName,
         actorId: loggedInUser.id || "system_admin"
       };
 
@@ -128,11 +142,13 @@ export default function InventoryAssignmentPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      toast.success("Property assigned successfully and logged!");
+      toast.success(data.message || "Property assigned successfully!");
       setIsModalOpen(false);
       fetchInventories();
     } catch (error: any) {
       toast.error(error.message || "Failed to assign property");
+    } finally {
+      setSubmitting(false); // Stop loading regardless of success/error
     }
   };
 
@@ -148,13 +164,12 @@ export default function InventoryAssignmentPage() {
     <div className="container mx-auto px-4 py-28 max-w-6xl space-y-6">
       <Toaster position="top-right" />
       
-      {/* Centered Heading */}
       <div className="text-center py-4">
         <h1 className="text-3xl sm:text-4xl font-black text-black dark:text-white tracking-tight">
           Inventory Management & Assignment
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          1 Unit = Rs. 100,000 (Min 2, Max 20 Units allowed)
+          1 Unit = Rs. 100,000 (Min 2, Max 20 Units allowed per CNIC total)
         </p>
       </div>
 
@@ -204,7 +219,6 @@ export default function InventoryAssignmentPage() {
               </table>
             </div>
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-darkmode border-t border-border dark:border-dark_border">
                 <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -267,11 +281,12 @@ export default function InventoryAssignmentPage() {
               <div className="flex gap-2">
                 <input 
                   type="text" 
-                  placeholder="Enter CNIC (e.g., 35202-xxxxxxx-x)"
+                  placeholder="33303-3332783-9"
+                  maxLength={15}
                   value={cnicInput}
                   disabled={Boolean(customerData)}
-                  onChange={(e) => setCnicInput(e.target.value)}
-                  className={`w-full px-3 py-2 text-xs rounded-lg border border-border dark:border-dark_border bg-white dark:bg-semidark text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 ${customerData ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  onChange={handleCnicChange}
+                  className={`w-full px-3 py-2 text-xs font-mono rounded-lg border border-border dark:border-dark_border bg-white dark:bg-semidark text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 ${customerData ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
                 <button 
                   type="button"
@@ -288,11 +303,28 @@ export default function InventoryAssignmentPage() {
               </div>
 
               {customerData && (
-                <div className="mt-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg text-xs space-y-1">
+                <div className="mt-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg text-xs space-y-2">
                   <div className="font-bold text-green-800 dark:text-green-300">✓ Customer Verified (Status: {customerData.status})</div>
                   <div><span className="font-semibold">Name:</span> {customerData.name}</div>
-                  <div><span className="font-semibold">Phone Number:</span> {customerData.phone}</div>
+                  <div><span className="font-semibold">Phone:</span> {customerData.phone}</div>
                   <div><span className="font-semibold">CNIC:</span> {customerData.cnic}</div>
+                  
+                  <div className="border-t border-green-200 dark:border-green-800 pt-2 mt-2">
+                    <div className="font-bold text-black dark:text-white">
+                      Total Assigned Units across properties: <span className="text-primary font-extrabold">{customerData.totalAssignedUnits} / 20 Max</span>
+                    </div>
+                    {customerData.assignments && customerData.assignments.length > 0 ? (
+                      <ul className="list-disc pl-4 mt-1 space-y-1 text-gray-600 dark:text-gray-300">
+                        {customerData.assignments.map((item: any, idx: number) => (
+                          <li key={idx}>
+                            <span className="font-semibold">{item.propertyTitle}</span>: {item.units} Units ({item.plan})
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 italic mt-0.5">No properties assigned to this CNIC yet.</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -300,16 +332,15 @@ export default function InventoryAssignmentPage() {
             {/* Assignment Form */}
             {customerData && (
               <form onSubmit={handleSaveAssignment} className="space-y-3">
-                
                 <div>
                   <label className="block text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 mb-1">
-                    Units to Assign (Min: 2, Max: 20 | Pending: {selectedInventory.pendingUnit})
+                    Units to Assign (Min: 2)
                   </label>
                   <input 
                     type="number" 
                     required 
                     min="2"
-                    max={Math.min(20, selectedInventory.pendingUnit)}
+                    max="20"
                     value={assignForm.customerUnit}
                     onChange={(e) => setAssignForm({...assignForm, customerUnit: e.target.value})}
                     className="w-full px-3 py-2 text-xs rounded-lg border border-border dark:border-dark_border bg-white dark:bg-darkmode text-black dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -324,78 +355,37 @@ export default function InventoryAssignmentPage() {
                     onChange={(e) => setAssignForm({...assignForm, plan: e.target.value})}
                     className="w-full px-3 py-2 text-xs rounded-lg border border-border dark:border-dark_border bg-white dark:bg-darkmode text-black dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
-                    <option value="Gold8*F">Gold8*F</option>
-                    <option value="Silver 8+L">Silver 8+L</option>
+                    <option value="Dual_Benefit">Dual Benefit</option>
+                    <option value="Capital_Gain">Capital Gain</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 mb-1">Payment Method</label>
-                  <select 
-                    value={assignForm.paymentMethod}
-                    onChange={(e) => setAssignForm({...assignForm, paymentMethod: e.target.value})}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-border dark:border-dark_border bg-white dark:bg-darkmode text-black dark:text-white font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="By Hand">By Hand</option>
-                    <option value="JazzCash">JazzCash</option>
-                    <option value="EasyPaisa">EasyPaisa</option>
-                    <optgroup label="Commercial & Islamic Banks">
-                      <option value="Allied Bank Limited (ABL)">Allied Bank Limited (ABL)</option>
-                      <option value="Askari Bank">Askari Bank</option>
-                      <option value="Bank Alfalah">Bank Alfalah</option>
-                      <option value="Bank Al-Habib">Bank Al-Habib</option>
-                      <option value="Faysal Bank">Faysal Bank</option>
-                      <option value="Habib Bank Limited (HBL)">Habib Bank Limited (HBL)</option>
-                      <option value="Habib Metropolitan Bank">Habib Metropolitan Bank</option>
-                      <option value="MCB Bank Limited">MCB Bank Limited</option>
-                      <option value="Meezan Bank">Meezan Bank</option>
-                      <option value="National Bank of Pakistan (NBP)">National Bank of Pakistan (NBP)</option>
-                      <option value="Standard Chartered Bank">Standard Chartered Bank</option>
-                      <option value="The Bank of Punjab (BOP)">The Bank of Punjab (BOP)</option>
-                      <option value="UBL (United Bank Limited)">UBL (United Bank Limited)</option>
-                      <option value="Dubai Islamic Bank">Dubai Islamic Bank</option>
-                      <option value="JS Bank">JS Bank</option>
-                      <option value="BankIslami Pakistan">BankIslami Pakistan</option>
-                    </optgroup>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 mb-1">Account Holder Name</label>
-                    <input 
-                      type="text" 
-                      value={assignForm.accountHolderName}
-                      onChange={(e) => setAssignForm({...assignForm, accountHolderName: e.target.value})}
-                      placeholder="Account holder name"
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-border dark:border-dark_border bg-white dark:bg-darkmode text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 mb-1">Account Number</label>
-                    <input 
-                      type="text" 
-                      value={assignForm.accountNumber}
-                      onChange={(e) => setAssignForm({...assignForm, accountNumber: e.target.value})}
-                      placeholder="Account number / IBAN"
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-border dark:border-dark_border bg-white dark:bg-darkmode text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                  </div>
                 </div>
 
                 <div className="pt-3 flex justify-end space-x-2">
                   <button 
                     type="button" 
                     onClick={() => setIsModalOpen(false)} 
+                    disabled={submitting}
                     className="px-4 py-2 bg-gray-100 dark:bg-dark_border text-black dark:text-white rounded-lg text-xs font-medium hover:bg-gray-200 transition"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded-lg text-xs font-medium shadow-xs hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+                    disabled={submitting}
+                    className={`px-4 py-2 rounded-lg text-xs font-medium shadow-xs transition flex items-center justify-center gap-2 ${
+                      submitting 
+                        ? 'bg-gray-400 cursor-not-allowed text-black' 
+                        : 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200'
+                    }`}
                   >
-                    Save Assignment
+                    {submitting ? (
+                      <>
+                        <span className="w-3 h-3 text-black border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Assignment'
+                    )}
                   </button>
                 </div>
               </form>

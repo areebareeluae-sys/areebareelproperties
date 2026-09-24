@@ -1,0 +1,1 @@
+ALTER TABLE `internal_cash_logs` ADD `transaction_type` text DEFAULT 'Cash In' NOT NULL;

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Loader from "../../components/shared/Loader"; // Apne path ke mutabiq adjust kar lein
+import Loader from "../../components/shared/Loader";
 
 interface InventoryProfit {
   id: string;
@@ -25,6 +25,8 @@ interface Transaction {
   date: string;
 }
 
+const ROWS_PER_PAGE = 10;
+
 const TransactionHistoryPage = () => {
   const [cnicInput, setCnicInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +35,10 @@ const TransactionHistoryPage = () => {
     transactions: Transaction[];
   } | null>(null);
   const [error, setError] = useState("");
+
+  // Pagination states for both tables
+  const [profitPage, setProfitPage] = useState(1);
+  const [txPage, setTxPage] = useState(1);
 
   // CNIC format handle karne ke liye
   const handleCnicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +65,8 @@ const TransactionHistoryPage = () => {
     setLoading(true);
     setError("");
     setHistoryData(null);
+    setProfitPage(1);
+    setTxPage(1);
 
     try {
       const res = await fetch(`/api/transaction-history?cnic=${encodeURIComponent(cnicInput)}`);
@@ -79,6 +87,21 @@ const TransactionHistoryPage = () => {
       setLoading(false);
     }
   };
+
+  // Pagination Slicing Helpers
+  const paginatedProfits = historyData?.inventoryProfits.slice(
+    (profitPage - 1) * ROWS_PER_PAGE,
+    profitPage * ROWS_PER_PAGE
+  ) || [];
+
+  const totalProfitPages = Math.ceil((historyData?.inventoryProfits.length || 0) / ROWS_PER_PAGE);
+
+  const paginatedTransactions = historyData?.transactions.slice(
+    (txPage - 1) * ROWS_PER_PAGE,
+    txPage * ROWS_PER_PAGE
+  ) || [];
+
+  const totalTxPages = Math.ceil((historyData?.transactions.length || 0) / ROWS_PER_PAGE);
 
   return (
     <div className="container mx-auto px-4 py-28 max-w-6xl space-y-6 min-h-screen">
@@ -135,8 +158,8 @@ const TransactionHistoryPage = () => {
                   </tr>
                 </thead>
                 <tbody className="text-xs">
-                  {historyData.inventoryProfits.length > 0 ? (
-                    historyData.inventoryProfits.map((item) => (
+                  {paginatedProfits.length > 0 ? (
+                    paginatedProfits.map((item) => (
                       <tr key={item.id} className="border-b border-border dark:border-dark_border hover:bg-gray-50 dark:hover:bg-darkmode/50 transition">
                         <td className="p-3 text-black dark:text-white font-medium">{item.plan}</td>
                         <td className="p-3 text-black dark:text-white">{item.customerUnit}</td>
@@ -158,6 +181,29 @@ const TransactionHistoryPage = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Profit Table Pagination Controls */}
+            {totalProfitPages > 1 && (
+              <div className="flex justify-between items-center mt-4 pt-4 border-t border-border dark:border-dark_border text-xs">
+                <span className="text-gray-500">Page {profitPage} of {totalProfitPages}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setProfitPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={profitPage === 1}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-darkmode disabled:opacity-50 font-bold"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setProfitPage((prev) => Math.min(prev + 1, totalProfitPages))}
+                    disabled={profitPage === totalProfitPages}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-darkmode disabled:opacity-50 font-bold"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 2. Cash Transaction History Table */}
@@ -175,8 +221,8 @@ const TransactionHistoryPage = () => {
                   </tr>
                 </thead>
                 <tbody className="text-xs">
-                  {historyData.transactions.length > 0 ? (
-                    historyData.transactions.map((tx) => (
+                  {paginatedTransactions.length > 0 ? (
+                    paginatedTransactions.map((tx) => (
                       <tr key={tx.id} className="border-b border-border dark:border-dark_border hover:bg-gray-50 dark:hover:bg-darkmode/50 transition">
                         <td className="p-3 text-black dark:text-white font-mono font-medium">{tx.transactionNumber}</td>
                         <td className="p-3 text-black dark:text-white">{tx.plan}</td>
@@ -193,6 +239,29 @@ const TransactionHistoryPage = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Transaction Table Pagination Controls */}
+            {totalTxPages > 1 && (
+              <div className="flex justify-between items-center mt-4 pt-4 border-t border-border dark:border-dark_border text-xs">
+                <span className="text-gray-500">Page {txPage} of {totalTxPages}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTxPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={txPage === 1}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-darkmode disabled:opacity-50 font-bold"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setTxPage((prev) => Math.min(prev + 1, totalTxPages))}
+                    disabled={txPage === totalTxPages}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-darkmode disabled:opacity-50 font-bold"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

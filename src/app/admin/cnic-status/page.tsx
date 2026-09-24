@@ -1,14 +1,16 @@
 "use client";
 import { useState } from "react";
 import toast, { Toaster } from 'react-hot-toast';
-import Loader from "../../components/shared/Loader"; // Apne project ke mutabiq loader path adjust kar lein
+import Loader from "../../components/shared/Loader"; 
 
 export default function CnicStatusPage() {
   const [cnicInput, setCnicInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
 
-  // CNIC Auto-Formatting Function (XXXXX-XXXXXXX-X)
+  // Modal State for Image Preview
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+
   const formatCnicInput = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 5) {
@@ -61,7 +63,7 @@ export default function CnicStatusPage() {
           CNIC Status & Profile Details
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Search by CNIC to view complete application information, inventory profit data, property details, and transactions.
+          Search by CNIC to view complete application information, images, inventory profit data, and transactions.
         </p>
       </div>
 
@@ -96,34 +98,124 @@ export default function CnicStatusPage() {
       {resultData && (
         <div className="space-y-6">
 
-          {/* 1. Application & Applicant Details */}
-          <div className="bg-white dark:bg-semidark p-6 rounded-2xl border border-border dark:border-dark_border shadow-xs space-y-4">
-            <h2 className="text-base font-bold text-black dark:text-white border-b border-border dark:border-dark_border pb-3 flex items-center justify-between">
-              <span>Section A & C: Applicant & Personal Details</span>
-              <span className="px-3 py-1 bg-gray-100 dark:bg-darkmode text-xs rounded-lg font-bold">Status: {resultData.application.status}</span>
-            </h2>
+          {/* 1. Applicant Full Information & Images */}
+          <div className="bg-white dark:bg-semidark p-6 rounded-2xl border border-border dark:border-dark_border shadow-xs space-y-6">
+            
+            {/* Header & Status */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-border dark:border-dark_border pb-4 gap-3">
+              <div>
+                <h2 className="text-lg font-black text-black dark:text-white">Applicant Profile & Form Information</h2>
+                <p className="text-xs text-gray-400">Application Date: {resultData.application.date}</p>
+              </div>
+              <span className="px-3 py-1 bg-black text-white dark:bg-white dark:text-black text-xs rounded-lg font-extrabold uppercase">
+                Status: {resultData.application.status}
+              </span>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-              <div><span className="text-gray-400 block">App No:</span> <strong className="text-black dark:text-white">{resultData.application.appNo}</strong></div>
-              <div><span className="text-gray-400 block">Full Name:</span> <strong className="text-black dark:text-white">{resultData.application.fullName}</strong></div>
-              <div><span className="text-gray-400 block">CNIC:</span> <strong className="text-black dark:text-white">{resultData.application.cnic}</strong></div>
-              <div><span className="text-gray-400 block">Father Name:</span> <strong className="text-black dark:text-white">{resultData.application.fatherName}</strong></div>
-              <div><span className="text-gray-400 block">Mobile:</span> <strong className="text-black dark:text-white">{resultData.application.mobile}</strong></div>
-              <div><span className="text-gray-400 block">Date of Birth:</span> <strong className="text-black dark:text-white">{resultData.application.dob || 'N/A'}</strong></div>
-              <div><span className="text-gray-400 block">Applicant Income:</span> <strong className="text-black dark:text-white">Rs. {resultData.application.applicantIncome?.toLocaleString()}</strong></div>
-              <div><span className="text-gray-400 block">Household Income:</span> <strong className="text-black dark:text-white">Rs. {resultData.application.householdIncome?.toLocaleString()}</strong></div>
-              <div><span className="text-gray-400 block">Address:</span> <strong className="text-black dark:text-white">{resultData.application.address || 'N/A'}</strong></div>
+            {/* Profile Photo and Main Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+              
+              {/* Applicant Profile Photo Card */}
+              <div className="flex flex-col items-center justify-center bg-gray-50 dark:bg-darkmode p-4 rounded-2xl border border-border dark:border-dark_border">
+                <span className="text-[11px] font-bold text-gray-400 uppercase mb-2">Profile Photo</span>
+                {resultData.application.photoUrl ? (
+                  <img 
+                    src={resultData.application.photoUrl} 
+                    alt="Applicant Photo" 
+                    onClick={() => setPreviewImage({ url: resultData.application.photoUrl, title: "Applicant Profile Photo" })}
+                    className="w-28 h-28 object-cover rounded-xl border border-border dark:border-dark_border cursor-pointer hover:opacity-80 transition shadow-sm"
+                  />
+                ) : (
+                  <div className="w-28 h-28 flex items-center justify-center bg-gray-200 dark:bg-black/40 text-gray-400 text-xs rounded-xl font-medium">
+                    No Photo
+                  </div>
+                )}
+                <span className="text-[10px] text-gray-400 mt-2 italic">Click image to zoom</span>
+              </div>
+
+              {/* Personal Details */}
+              <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs bg-gray-50 dark:bg-darkmode p-4 rounded-2xl border border-border dark:border-dark_border">
+                <div><span className="text-gray-400 block">App No:</span> <strong className="text-black dark:text-white">{resultData.application.appNo}</strong></div>
+                <div><span className="text-gray-400 block">Full Name:</span> <strong className="text-black dark:text-white">{resultData.application.fullName}</strong></div>
+                <div><span className="text-gray-400 block">CNIC:</span> <strong className="text-black dark:text-white">{resultData.application.cnic}</strong></div>
+                <div><span className="text-gray-400 block">Father Name:</span> <strong className="text-black dark:text-white">{resultData.application.fatherName}</strong></div>
+                <div><span className="text-gray-400 block">Date of Birth:</span> <strong className="text-black dark:text-white">{resultData.application.dob || 'N/A'}</strong></div>
+                <div><span className="text-gray-400 block">Mobile:</span> <strong className="text-black dark:text-white">{resultData.application.mobile}</strong></div>
+                <div><span className="text-gray-400 block">Alt Contact:</span> <strong className="text-black dark:text-white">{resultData.application.altContact || 'N/A'}</strong></div>
+                <div><span className="text-gray-400 block">Address:</span> <strong className="text-black dark:text-white">{resultData.application.address || 'N/A'}</strong></div>
+                <div><span className="text-gray-400 block">Living Arrangement:</span> <strong className="text-black dark:text-white">{resultData.application.livingArrangement || 'N/A'}</strong></div>
+              </div>
+
+            </div>
+
+            {/* Financial & Household Info Grid */}
+            <div className="pt-2">
+              <h4 className="text-xs font-bold uppercase text-gray-400 mb-3">Financial & Household Information</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs bg-gray-50 dark:bg-darkmode p-4 rounded-2xl border border-border dark:border-dark_border">
+                <div><span className="text-gray-400 block">Applicant Income:</span> <strong className="text-black dark:text-white">Rs. {resultData.application.applicantIncome?.toLocaleString()}</strong></div>
+                <div><span className="text-gray-400 block">Income Type:</span> <strong className="text-black dark:text-white">{resultData.application.applicantIncomeType || 'N/A'}</strong></div>
+                <div><span className="text-gray-400 block">Household Income:</span> <strong className="text-black dark:text-white">Rs. {resultData.application.householdIncome?.toLocaleString()}</strong></div>
+                <div><span className="text-gray-400 block">Participation Amount:</span> <strong className="text-black dark:text-white">Rs. {resultData.application.participationAmount?.toLocaleString()}</strong></div>
+                <div><span className="text-gray-400 block">Earning Members:</span> <strong className="text-black dark:text-white">{resultData.application.earningMembers || '0'}</strong></div>
+                <div><span className="text-gray-400 block">Dependents:</span> <strong className="text-black dark:text-white">{resultData.application.dependents || '0'}</strong></div>
+              </div>
+            </div>
+
+            {/* CNIC Front & Back Images Section */}
+            <div className="pt-2">
+              <h4 className="text-xs font-bold uppercase text-gray-400 mb-3">CNIC Documents (Front & Back)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* CNIC Front */}
+                <div className="bg-gray-50 dark:bg-darkmode p-4 rounded-2xl border border-border dark:border-dark_border flex flex-col items-center">
+                  <span className="text-[11px] font-bold text-gray-400 mb-2">CNIC Front Side</span>
+                  {resultData.application.cnicFrontUrl ? (
+                    <img 
+                      src={resultData.application.cnicFrontUrl} 
+                      alt="CNIC Front" 
+                      onClick={() => setPreviewImage({ url: resultData.application.cnicFrontUrl, title: "CNIC Front Side" })}
+                      className="w-full h-40 object-cover rounded-xl border border-border dark:border-dark_border cursor-pointer hover:opacity-80 transition shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-full h-40 flex items-center justify-center bg-gray-200 dark:bg-black/40 text-gray-400 text-xs rounded-xl font-medium">
+                      Not Uploaded
+                    </div>
+                  )}
+                  <span className="text-[10px] text-gray-400 mt-2 italic">Click to zoom preview</span>
+                </div>
+
+                {/* CNIC Back */}
+                <div className="bg-gray-50 dark:bg-darkmode p-4 rounded-2xl border border-border dark:border-dark_border flex flex-col items-center">
+                  <span className="text-[11px] font-bold text-gray-400 mb-2">CNIC Back Side</span>
+                  {resultData.application.cnicBackUrl ? (
+                    <img 
+                      src={resultData.application.cnicBackUrl} 
+                      alt="CNIC Back" 
+                      onClick={() => setPreviewImage({ url: resultData.application.cnicBackUrl, title: "CNIC Back Side" })}
+                      className="w-full h-40 object-cover rounded-xl border border-border dark:border-dark_border cursor-pointer hover:opacity-80 transition shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-full h-40 flex items-center justify-center bg-gray-200 dark:bg-black/40 text-gray-400 text-xs rounded-xl font-medium">
+                      Not Uploaded
+                    </div>
+                  )}
+                  <span className="text-[10px] text-gray-400 mt-2 italic">Click to zoom preview</span>
+                </div>
+
+              </div>
             </div>
 
             {/* Nominee Details */}
-            <div className="pt-3 border-t border-border dark:border-dark_border">
-              <h4 className="text-xs font-bold uppercase text-gray-400 mb-2">Nominee Details</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="pt-2 border-t border-border dark:border-dark_border">
+              <h4 className="text-xs font-bold uppercase text-gray-400 mb-3">Nominee Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs bg-gray-50 dark:bg-darkmode p-4 rounded-2xl border border-border dark:border-dark_border">
                 <div><span className="text-gray-400 block">Nominee Name:</span> <strong className="text-black dark:text-white">{resultData.application.nomineeName || 'N/A'}</strong></div>
                 <div><span className="text-gray-400 block">Relation:</span> <strong className="text-black dark:text-white">{resultData.application.nomineeRelation || 'N/A'}</strong></div>
+                <div><span className="text-gray-400 block">Nominee CNIC:</span> <strong className="text-black dark:text-white">{resultData.application.nomineeCnic || 'N/A'}</strong></div>
                 <div><span className="text-gray-400 block">Nominee Mobile:</span> <strong className="text-black dark:text-white">{resultData.application.nomineeMobile || 'N/A'}</strong></div>
               </div>
             </div>
+
           </div>
 
           {/* 2. Inventory Profit & Property Details */}
@@ -149,12 +241,11 @@ export default function CnicStatusPage() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                       <div><span className="text-gray-400 block">Customer Units:</span> <strong className="text-black dark:text-white">{item.customerUnit}</strong></div>
-                      <div><span className="text-gray-400 block">Inventory Price:</span> <strong className="text-black dark:text-white">Rs. {item.inventoryPrice?.toLocaleString()}</strong></div>
-                      <div><span className="text-gray-400 block">Total Price:</span> <strong className="text-black dark:text-white">Rs. {item.totalPrice?.toLocaleString()}</strong></div>
+                      <div><span className="text-gray-400 block">Unit Price:</span> <strong className="text-black dark:text-white">Rs. {item.inventoryPrice?.toLocaleString()}</strong></div>
+                      <div><span className="text-gray-400 block">Inventory Price:</span> <strong className="text-black dark:text-white">Rs. {item.totalPrice?.toLocaleString()}</strong></div>
                       <div><span className="text-gray-400 block">Profit Date:</span> <strong className="text-black dark:text-white">{item.profitDate}</strong></div>
                     </div>
 
-                    {/* Inventory Property Details Info */}
                     {item.inventoryInfo && (
                       <div className="mt-2 pt-3 border-t border-border dark:border-dark_border">
                         <h4 className="text-[11px] font-bold uppercase text-gray-400 mb-2">Linked Property Information</h4>
@@ -173,7 +264,7 @@ export default function CnicStatusPage() {
             )}
           </div>
 
-          {/* 3. Transaction History */}
+          {/* 3. Transaction History with Inventory Details */}
           <div className="bg-white dark:bg-semidark p-6 rounded-2xl border border-border dark:border-dark_border shadow-xs space-y-4">
             <h2 className="text-base font-bold text-black dark:text-white border-b border-border dark:border-dark_border pb-3">
               Transaction History
@@ -188,6 +279,7 @@ export default function CnicStatusPage() {
                     <tr>
                       <th className="px-3 py-3">Tx Number</th>
                       <th className="px-3 py-3">Plan</th>
+                      <th className="px-3 py-3">Linked Property / Inventory</th>
                       <th className="px-3 py-3">Calculated Amount</th>
                       <th className="px-3 py-3">Date</th>
                       <th className="px-3 py-3">Remarks</th>
@@ -198,6 +290,16 @@ export default function CnicStatusPage() {
                       <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-darkmode/50">
                         <td className="px-3 py-3 font-bold">{tx.transactionNumber}</td>
                         <td className="px-3 py-3">{tx.plan}</td>
+                        <td className="px-3 py-3">
+                          {tx.inventoryInfo ? (
+                            <div>
+                              <strong className="text-primary block">{tx.inventoryInfo.property_title}</strong>
+                              <span className="text-[10px] text-gray-400">{tx.inventoryInfo.location} | {tx.inventoryInfo.category}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">N/A</span>
+                          )}
+                        </td>
                         <td className="px-3 py-3 text-green-600 font-bold">Rs. {tx.calculatedAmount?.toLocaleString()}</td>
                         <td className="px-3 py-3">{tx.date}</td>
                         <td className="px-3 py-3 text-gray-500">{tx.remarks}</td>
@@ -211,6 +313,40 @@ export default function CnicStatusPage() {
 
         </div>
       )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-white dark:bg-semidark text-dark dark:text-white max-w-2xl w-full p-5 rounded-2xl shadow-2xl border border-border dark:border-dark_border space-y-4">
+            <div className="flex justify-between items-center border-b border-border dark:border-dark_border pb-3">
+              <h3 className="text-base font-bold">{previewImage.title}</h3>
+              <button 
+                onClick={() => setPreviewImage(null)}
+                className="text-gray-400 hover:text-black dark:hover:text-white font-bold text-xl px-2"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="flex justify-center bg-black/10 dark:bg-black/40 p-3 rounded-xl">
+              <img 
+                src={previewImage.url} 
+                alt="Enlarged View" 
+                className="max-h-[70vh] w-auto object-contain rounded-lg shadow-md"
+              />
+            </div>
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="px-6 py-2 bg-gray-200 dark:bg-darkmode font-bold rounded-xl text-xs"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

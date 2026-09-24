@@ -3,11 +3,16 @@ import { db } from '@/db';
 import { inventoryProfit, inventory } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-// GET: Fetch all inventory_profit columns with optional CNIC filter
+// GET: Fetch inventory profit records ONLY when CNIC is provided
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const cnic = searchParams.get('cnic');
+
+    // Agar CNIC provide nahi ki gai, toh empty array return karein (auto show nahi hoga)
+    if (!cnic || cnic.trim() === '') {
+      return NextResponse.json({ success: true, assignments: [] }, { status: 200 });
+    }
 
     let query = db
       .select({
@@ -20,9 +25,6 @@ export async function GET(req: Request) {
         totalPrice: inventoryProfit.totalPrice,
         customerUnit: inventoryProfit.customerUnit,
         plan: inventoryProfit.plan,
-        paymentMethod: inventoryProfit.paymentMethod,
-        accountNumber: inventoryProfit.accountNumber,
-        accountHolderName: inventoryProfit.accountHolderName,
         date: inventoryProfit.date,
         profitDate: inventoryProfit.profitDate,
         status: inventoryProfit.status,
@@ -32,10 +34,8 @@ export async function GET(req: Request) {
 
     const results = await query;
 
-    // Filter by CNIC if provided
-    const filtered = cnic 
-      ? results.filter(item => item.cnic && item.cnic.toLowerCase().includes(cnic.toLowerCase()))
-      : results;
+    // Filter by CNIC
+    const filtered = results.filter(item => item.cnic && item.cnic.toLowerCase().includes(cnic.toLowerCase()));
 
     return NextResponse.json({ success: true, assignments: filtered }, { status: 200 });
   } catch (error: any) {

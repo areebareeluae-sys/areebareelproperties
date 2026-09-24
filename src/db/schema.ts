@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real ,numeric} from 'drizzle-orm/sqlite-core';
 // Form Applications Table
 export const formApplications = sqliteTable('form_applications', {
   id: text('id').primaryKey(),
@@ -159,10 +159,7 @@ export const inventoryProfit = sqliteTable('inventory_profit', {
   inventoryPrice: real('inventory_price').notNull(),
   totalPrice: real('total_price').notNull(),
   customerUnit: integer('customer_unit').notNull(),
-  paymentMethod: text('payment_method').notNull(), // Bank, JazzCash, EasyPaisa, ByHand
-  accountNumber: text('account_number'),
   plan: text('plan').notNull(),
-  accountHolderName: text('account_holder_name'),
   date: text('date').notNull(),
   profitDate: text('profit_date').notNull(),
   status: text('status').notNull().default('Active'),
@@ -184,4 +181,36 @@ export const adBanners = sqliteTable("ad_banners", {
   image: text("image").notNull(),       // Cloudinary Secure URL
   public_id: text("public_id").notNull(), // Cloudinary Public ID (Delete ke liye zaroori hai)
   status: text("status").default("Active"),
+});
+export const customerPaymentMethods = sqliteTable("customer_payment_methods", {
+  id: integer("id").primaryKey({ autoIncrement: true }), // Auto increment primary key
+  cnic: text("cnic").notNull(),           
+  accountHolder: text("account_holder").notNull(),
+  accountNumber: text("account_number").notNull(),
+  bankName: text("bank_name").notNull(),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+export const pendingAmmount = sqliteTable("pending_ammount", {
+  id: text("id").primaryKey(),                  // Unique ID (UUID)
+  cnic: text("cnic").notNull(),                 // Customer CNIC
+  ammount: real("ammount").notNull(),           // Calculated prorated amount
+  profitdate: text("profitdate").notNull(),     // Profit date reference
+  reson: text("reson").notNull(),               // Reason description (e.g. upgrading units...)
+  status: text("status").notNull().default("pending"), // Status: pending, paid, etc.
+  remarks: text("remarks"),                     // Optional remarks (khali/null)
+  sendData: text("send_data"),                  // Sending date or data (khali/null)
+});
+export const internalCashLogs = sqliteTable('internal_cash_logs', {
+  id: text('id').primaryKey(),
+  cnic: text('cnic').notNull(),
+  customerName: text('customer_name'),
+  agentId: text('agent_id').notNull(),
+  agentName: text('agent_name').notNull(),
+  transactionType: text('transaction_type').notNull().default('Cash In'), // 'Cash In' or 'Cash Send'
+  receivedFrom: text('received_from').notNull(), // Kahan se aaya (Source)
+  givenTo: text('given_to').notNull(),         // Kahan gaya (Destination)
+  amount: numeric('amount').notNull(),
+  slipOrRefNumber: text('slip_or_ref_number'),
+  internalRemarks: text('internal_remarks'),
+  createdAt: text('created_at').notNull(),
 });

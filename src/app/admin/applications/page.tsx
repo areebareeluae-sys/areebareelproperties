@@ -26,7 +26,7 @@ export default function ClientApplicationsPage() {
   const [actionType, setActionType] = useState<string>(""); 
   const [remarks, setRemarks] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-
+const [viewMode, setViewMode] = useState<string>("all"); // "all" ya "verification"
   // View Details Modal States
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewApp, setViewApp] = useState<any>(null);
@@ -158,20 +158,27 @@ export default function ClientApplicationsPage() {
   };
 
   // Filtered Applications Logic
-  const filteredApplications = applications.filter((app: any) => {
-    const fullName = (app.fullName || app.clientName || "").toLowerCase();
-    const cnic = (app.cnic || app.cnicNo || "").toLowerCase();
-    const appNo = (app.appNo || app.applicationNumber || "").toLowerCase();
-    const status = (app.status || "Pending").toLowerCase();
+const filteredApplications = applications.filter((app: any) => {
+  const fullName = (app.fullName || app.clientName || "").toLowerCase();
+  const cnic = (app.cnic || app.cnicNo || "").toLowerCase();
+  const appNo = (app.appNo || app.applicationNumber || "").toLowerCase();
+  const status = (app.status || "Pending").toLowerCase();
 
-    const matchesName = fullName.includes(searchName.toLowerCase());
-    const matchesCnic = cnic.includes(searchCnic.toLowerCase());
-    const matchesAppNo = appNo.includes(searchAppNo.toLowerCase());
-    const matchesStatus = filterStatus === "ALL" || status === filterStatus.toLowerCase();
+  const matchesName = fullName.includes(searchName.toLowerCase());
+  const matchesCnic = cnic.includes(searchCnic.toLowerCase());
+  const matchesAppNo = appNo.includes(searchAppNo.toLowerCase());
+  const matchesStatus = filterStatus === "ALL" || status === filterStatus.toLowerCase();
+// Naya state add karein baqi states ke sath:
 
-    return matchesName && matchesCnic && matchesAppNo && matchesStatus;
-  });
+  // View Mode Filter (All vs Verification Dept-4)
+  let matchesViewMode = true;
+  if (viewMode === "verification") {
+    // Yahan check karein ke application dept_4 ki hai ya current department dept_4 hai
+    matchesViewMode = (app.currentDepartmentId === 'dept_4' || app.departmentId === 'dept_4');
+  }
 
+  return matchesName && matchesCnic && matchesAppNo && matchesStatus && matchesViewMode;
+});
   // Pagination Logic
   const totalPages = Math.ceil(filteredApplications.length / rowsPerPage);
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -212,6 +219,30 @@ export default function ClientApplicationsPage() {
             <span className="block sm:inline">{error}</span>
           </div>
         )}
+
+{/* --- VIEW MODE TOGGLE BUTTONS (YAHAN LAGA DEIN) --- */}
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setViewMode("all")}
+            className={`px-4 py-2 text-xs font-bold rounded-lg border border-black transition ${
+              viewMode === "all" 
+                ? "bg-black text-white dark:bg-white dark:text-black" 
+                : "bg-white text-black dark:bg-semidark dark:text-white"
+            }`}
+          >
+            All Department Applications
+          </button>
+          <button
+            onClick={() => setViewMode("verification")}
+            className={`px-4 py-2 text-xs font-bold rounded-lg border border-black transition ${
+              viewMode === "verification" 
+                ? "bg-black text-white dark:bg-white dark:text-black" 
+                : "bg-white text-black dark:bg-semidark dark:text-white"
+            }`}
+          >
+            Verification (Dept-4)
+          </button>
+        </div>
 
         {/* FILTER & SEARCH SECTION */}
         <div className="bg-white dark:bg-semidark p-5 rounded-xl shadow-md border border-black dark:border-dark_border grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -260,7 +291,6 @@ export default function ClientApplicationsPage() {
             </select>
           </div>
         </div>
-
         {/* APPLICATIONS TABLE SECTION */}
         <div className="bg-white dark:bg-semidark shadow-lg rounded-xl overflow-hidden border border-black dark:border-dark_border">
           {filteredApplications.length === 0 ? (
@@ -269,7 +299,9 @@ export default function ClientApplicationsPage() {
             </div>
           ) : (
             <>
+            
               <div className="overflow-x-auto">
+                
                 <table className="w-full divide-y divide-black dark:divide-dark_border table-fixed">
                   <thead className="bg-gray-100 dark:bg-dark_border">
                     <tr>

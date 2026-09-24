@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { formApplications, inventoryProfit, transactionHistory, inventory } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
@@ -22,17 +22,34 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, message: "No record found against this CNIC" }, { status: 404 });
     }
 
-    // 2. Fetch Inventory Profit / Assignment Details (Can be multiple or single)
+    // 2. Fetch Inventory Profit / Assignment Details
     const profitRecords = await db
       .select()
       .from(inventoryProfit)
       .where(eq(inventoryProfit.cnic, cnic));
 
     // 3. Fetch Transaction History
-    const transactions = await db
+    const rawTransactions = await db
       .select()
       .from(transactionHistory)
       .where(eq(transactionHistory.cnic, cnic));
+
+    // Attach Inventory Details to Transactions if inventoryId exists
+    let transactions = [];
+    for (const tx of rawTransactions) {
+      let invItem = null;
+      if (tx.inventoryId) {
+        const [foundInv] = await db
+          .select()
+          .from(inventory)
+          .where(eq(inventory.id, tx.inventoryId));
+        invItem = foundInv || null;
+      }
+      transactions.push({
+        ...tx,
+        inventoryInfo: invItem
+      });
+    }
 
     // 4. If inventoryId exists in profit records, fetch Inventory Details
     let inventoryDetailsList = [];
