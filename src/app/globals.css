@@ -68,7 +68,7 @@ html {
     }
 
     h3 {
-        @apply md:text-[28px] leading-[1.2] text-lg font-bold text-white dark:text-primary;
+        @apply md:text-[28px] leading-[1.2] text-lg font-bold text-black dark:text-primary;
     }
 
     h4 {

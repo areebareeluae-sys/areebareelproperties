@@ -359,7 +359,6 @@ export default function OfficeUsersManagementPage() {
                   className="w-full px-3 py-2 text-xs rounded bg-gray-100 dark:bg-darkmode text-black dark:text-white font-bold focus:outline-none border border-gray-300 dark:border-gray-700"
                 >
                   <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
                 </select>
               </div>
               <div className="pt-2 flex justify-end space-x-2">
@@ -376,7 +375,7 @@ export default function OfficeUsersManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-semidark text-black dark:text-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center pb-3">
-              <h3 className="text-lg font-black">Edit User: {selectedUser.name}</h3>
+              <h3 className="text-lg text-black font-black">Edit User: {selectedUser.name}</h3>
               <button onClick={() => setIsEditOpen(false)} className="text-xl font-bold">&times;</button>
             </div>
             <form onSubmit={handleEditSubmit} className="space-y-3">
