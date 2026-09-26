@@ -127,7 +127,7 @@ const Header: React.FC = () => {
 
           <div className="flex items-center space-x-3">
             {/* Country Toggle Button: Left UAE, Right PK */}
-            <div className="hidden sm:flex items-center bg-gray-100 dark:bg-dark_border p-1 rounded-lg border border-gray-300 dark:border-dark_border">
+            <div className=" sm:flex items-center bg-gray-100 dark:bg-dark_border p-1 rounded-lg border border-gray-300 dark:border-dark_border">
               <button
                 type="button"
                 onClick={() => handleCountryToggle("UAE")}
