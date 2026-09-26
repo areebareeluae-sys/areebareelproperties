@@ -15,13 +15,13 @@ export async function POST(req: Request) {
     }
 
     const isEmail = identifier.includes('@');
-
+const formattedEmail = identifier.trim().toLowerCase();
     // 1. AGAR EMAIL HAI TOH OFFICE USERS TABLE CHECK KAREIN
     if (isEmail) {
       const existingOfficeUser = await db
         .select()
         .from(officeUsers)
-        .where(eq(officeUsers.email, identifier))
+        .where(eq(officeUsers.email, formattedEmail))
         .limit(1);
 
       if (existingOfficeUser.length > 0) {
@@ -44,7 +44,8 @@ export async function POST(req: Request) {
               id: staff.id,
               name: staff.name, 
               email: staff.email, 
-              departmentId: staff.departmentId, 
+              departmentId: staff.departmentId, // e.g. "dept_0", "dept_3", etc.
+              department: staff.departmentId,   // layout compatibility ke liye extra field
               userRole: staff.role 
             } 
           },

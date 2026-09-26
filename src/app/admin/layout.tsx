@@ -36,27 +36,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const dept3Allowed = [
         "/admin/applications",
         "/admin/my-inventory",
+        "/admin/close-client",
+        "/admin/banners",
+        "/admin/customer-payment",
+        "/admin/cnic-status",
+        "/admin/cash-received",
         "/admin/my-properties",
         "/admin/assign-inventory",
         "/admin/transfer-inventory",
-        "/admin/upgrade-inventory",
         "/admin/deactivate-client",
-         "/admin/TransactionHistoryPage",
-              
+        "/admin/TransactionHistoryPage",
       ];
 
       // Check logic
-      if (dept === "dept_1" || dept === "dept_2") {
+      if (dept === "dept_0") {
+        // dept_0 ke liye dashboard bilkul ban hai, usay inventory par bhej dein
+        if (pathname === "/admin/dashboard" || pathname.startsWith("/admin/dashboard/")) {
+          router.replace("/admin/my-inventory");
+          return;
+        }
+      } 
+      else if (dept === "dept_1" || dept === "dept_2") {
         const isAllowed = dept1And2Allowed.some((path) => pathname === path || pathname.startsWith(path + "/"));
         if (!isAllowed) {
-          router.push("/admin/applications"); // Agar koi aur link kholne ki koshish ki toh wapasapplications par bhej do
+          router.push("/admin/applications"); 
           return;
         }
       } 
       else if (dept === "dept_3") {
         const isAllowed = dept3Allowed.some((path) => pathname === path || pathname.startsWith(path + "/"));
         if (!isAllowed) {
-          router.push("/admin/applications"); // Agar dept_3 wala banned page khole toh applications par bhej do
+          router.push("/admin/applications"); 
           return;
         }
       }

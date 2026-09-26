@@ -26,30 +26,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Name, email and password are required!' }, { status: 400 });
     }
 
-    const existingUser = await db.select().from(officeUsers).where(eq(officeUsers.email, email)).limit(1);
+    // Email ko lowercase (chhote alphabets) mein convert karna
+    const formattedEmail = email.trim().toLowerCase();
+
+    const existingUser = await db.select().from(officeUsers).where(eq(officeUsers.email, formattedEmail)).limit(1);
     if (existingUser.length > 0) {
       return NextResponse.json({ success: false, message: 'Email already exists!' }, { status: 400 });
     }
 
     const newId = crypto.randomUUID();
 
-    // 1. Insert User
+    // 1. Insert User with lowercase email
     await db.insert(officeUsers).values({
       id: newId,
       name,
-      email,
+      email: formattedEmail,
       password,
       departmentId: departmentId || null,
       role: role || 'staff',
     });
 
-    // 2. Log Activity in activityLogs (Ab koi error nahi aayega!)
+    // 2. Log Activity in activityLogs
     if (actorId) {
       await db.insert(activityLogs).values({
         id: crypto.randomUUID(),
         officeUserId: actorId,
         action: 'CREATE_USER',
-        remarks: `Created new office user: ${name} (${email}) with role: ${role || 'staff'}`,
+        remarks: `Created new office user: ${name} (${formattedEmail}) with role: ${role || 'staff'}`,
       });
     }
 
@@ -64,7 +67,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, departmentId, password, isActive, actorId } = body;
+    const { id, email, departmentId, password, isActive, actorId } = body; // Agar email update mein bhi ho sakti hai toh handle kar lein
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'User ID is required!' }, { status: 400 });
@@ -78,6 +81,7 @@ export async function PUT(req: Request) {
     }
 
     const updateData: any = {};
+    if (email) updateData.email = email.trim().toLowerCase(); // Agar email update ho rahi ho toh usay bhi lowercase karein
     if (departmentId !== undefined) updateData.departmentId = departmentId || null;
     if (password) updateData.password = password;
     if (isActive !== undefined) updateData.isActive = isActive;
@@ -98,6 +102,7 @@ export async function PUT(req: Request) {
       logRemarks = `Changed status of ${oldUserData.email} to ${isActive ? 'Active' : 'Deactivated'}`;
     } else {
       const changes = [];
+      if (email) changes.push(`Email updated`);
       if (departmentId !== undefined) changes.push(`Department updated`);
       if (password) changes.push(`Password changed`);
       logRemarks += changes.join(', ');
