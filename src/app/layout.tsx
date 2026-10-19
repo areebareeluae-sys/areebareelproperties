@@ -9,6 +9,7 @@ import Footer from "./components/layout/footer";
 import ScrollToTop from "./components/scroll-to-top";
 import Header from "./components/layout/header";
 import SessionProviderComp from "./provider/SessionProviderComp";
+import Link from "next/link";
 
 const dmsans = DM_Sans({ subsets: ["latin"] });
 
@@ -31,7 +32,30 @@ export default function RootLayout({
               <Aoscompo>
                 <Header />
                 <NextTopLoader />
-                
+
+                {/* LEFT SIDE FLOATING BUTTON (Join as a Dealer) */}
+            {/* LEFT SIDE FLOATING BUTTON (Join as a Dealer - Vertical on Mobile) */}
+<div className="fixed left-0 top-1/2 -translate-y-1/2 z-50">
+  <Link
+    href="/dealer"
+    className="group flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5 bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-2 sm:p-3 rounded-r-xl sm:rounded-r-2xl shadow-2xl border-y border-r border-blue-400/30 transition-all duration-300 ease-in-out hover:scale-105"
+    title="Join as a Dealer"
+  >
+    {/* Dealer Icon */}
+    <svg
+      className="w-4 h-4 sm:w-6 sm:h-6 shrink-0 fill-current text-white"
+      viewBox="0 0 24 24"
+    >
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+    </svg>
+
+    {/* Vertical text on mobile, horizontal on desktop */}
+    <span className="font-semibold text-[8px] sm:text-sm tracking-wide whitespace-nowrap [writing-mode:vertical-lr] sm:[writing-mode:horizontal-tb] rotate-180 sm:rotate-0">
+      Join as a Dealer
+    </span>
+  </Link>
+</div>
+
                 {/* FIXED FLOATING SOCIAL MEDIA SIDEBAR (Poori Website ke liye) */}
                 <div className="fixed right-1.5 sm:right-3 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-1 sm:p-2 rounded-lg sm:rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
                   

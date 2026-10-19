@@ -131,6 +131,22 @@ export const officeUsers = sqliteTable('office_users', {
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
 });
+export const dealerUsers = sqliteTable('dealer_users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  cnicNumber: text('cnic_number').notNull().unique(),
+  phoneNumber: text('phone_number').notNull().unique(),
+  companyName: text('company_name').notNull(),
+  companyAddress: text('company_address').notNull(),
+  frontCnicImage: text('front_cnic_image').notNull(),
+  backCnicImage: text('back_cnic_image').notNull(),
+  status: text('status', { enum: ['pending', 'approved', 'rejected'] })
+    .notNull()
+    .default('pending'),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
+});
 
 // 3. Application Activity Logs Table (Renamed from leadLogs)
 export const applicationLogs = sqliteTable('application_logs', {

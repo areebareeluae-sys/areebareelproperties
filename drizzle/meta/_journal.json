@@ -232,6 +232,13 @@
       "when": 1790280947911,
       "tag": "0032_warm_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1792424440731,
+      "tag": "0033_round_green_goblin",
+      "breakpoints": true
     }
   ]
 }
