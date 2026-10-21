@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function DealerRegistrationPage() {
@@ -15,10 +15,28 @@ export default function DealerRegistrationPage() {
 
   const [frontCnic, setFrontCnic] = useState<string | null>(null);
   const [backCnic, setBackCnic] = useState<string | null>(null);
+  
+  // Agreement Checkbox & Modal States
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [contractNo, setContractNo] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Set random contract ref and date on client side
+  useEffect(() => {
+    setContractNo(Math.floor(100000 + Math.random() * 900000).toString());
+    setCurrentDate(
+      new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    );
+  }, []);
 
   // Automatic Formatting for CNIC: XXXXX-XXXXXXX-X (Max 15 chars)
   const handleCnicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +98,11 @@ export default function DealerRegistrationPage() {
       return;
     }
 
+    if (!agreedToTerms) {
+      setErrorMessage('You must read and agree to the Real Estate Dealer Partnership Agreement before submitting.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -109,6 +132,7 @@ export default function DealerRegistrationPage() {
         });
         setFrontCnic(null);
         setBackCnic(null);
+        setAgreedToTerms(false);
       }
     } catch (err) {
       setErrorMessage('Network error. Please try again later.');
@@ -299,11 +323,39 @@ export default function DealerRegistrationPage() {
             </div>
           </div>
 
+          {/* Partnership Agreement Checkbox Section */}
+          <div className="pt-4 border-t border-indigo-500/20">
+            <div className="flex items-start gap-3 bg-slate-900/60 p-4 rounded-2xl border border-indigo-500/30">
+              <input
+                type="checkbox"
+                id="agreementCheckbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 text-indigo-600 rounded border-gray-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <div className="text-xs text-white/90">
+                <label htmlFor="agreementCheckbox" className="cursor-pointer font-medium">
+                  I have read and agree to the{' '}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowAgreementModal(true)}
+                  className="text-indigo-400 underline font-bold hover:text-indigo-300 ml-1 inline-block"
+                >
+                  Real Estate Dealer Partnership Agreement & Terms
+                </button>
+                <p className="text-gray-400 text-[11px] mt-1">
+                  (Includes 0.5% sales commission, 35% rental lease agreement commission, 50/50 net profit share, and 24-hour inventory verification rules).
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/30 transition duration-300 disabled:opacity-50 text-base mt-4"
+            disabled={loading || !agreedToTerms}
+            className="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/30 transition duration-300 disabled:opacity-40 text-base mt-4 cursor-pointer"
           >
             {loading ? 'Submitting Application...' : 'Submit Dealer Application'}
           </button>
@@ -316,6 +368,97 @@ export default function DealerRegistrationPage() {
           </Link>
         </div>
       </div>
+
+      {/* AGREEMENT MODAL POPUP */}
+      {showAgreementModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setShowAgreementModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-3xl w-full p-6 sm:p-8 relative shadow-2xl border border-gray-200 my-8 font-serif max-h-[90vh] overflow-y-auto text-black"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Top Actions */}
+            <div className="flex justify-between items-center mb-6 pb-3 border-b font-sans">
+              <h3 className="font-bold text-indigo-950 text-base sm:text-lg">📜 Partnership Legal Agreement</h3>
+              <button
+                onClick={() => setShowAgreementModal(false)}
+                className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-black flex items-center justify-center font-bold text-sm transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Printable Agreement Document Content */}
+            <div className="space-y-6 text-black text-xs sm:text-sm">
+              <div className="text-center border-b-2 border-indigo-900 pb-4">
+                <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-indigo-950">
+                  Real Estate Dealer Partnership Agreement
+                </h2>
+                <p className="text-[11px] text-gray-500 mt-1 uppercase font-sans tracking-widest">
+                  Official Commission & Service Level Legal Contract
+                </p>
+              </div>
+
+              <div className="flex justify-between text-xs text-gray-600 font-sans border-b pb-2">
+                <div>
+                  <strong>Date:</strong> {currentDate || 'Today'}
+                </div>
+                <div>
+                  <strong>Contract Ref:</strong> DLR-AGR-{contractNo || '------'}
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs text-gray-800 leading-relaxed font-sans">
+                <p>
+                  This <strong>Partnership & Service Level Agreement</strong> ("Agreement") outlines the official terms and conditions between <strong>ChironProperties Real Estate Network Pvt Ltd</strong> (Company) and the registering authorized dealer (Dealer).
+                </p>
+              </div>
+
+              <div className="space-y-4 text-xs text-gray-800 leading-relaxed">
+                <h3 className="font-bold text-sm text-indigo-950 border-b pb-1 font-sans">
+                  Operational Terms & Legal Clauses
+                </h3>
+
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>
+                    <strong>0.5% Sales Commission Structure:</strong> On every successful property transaction (Sale/Purchase) facilitated through the platform, the Dealer agrees to a standard total commission capped at 0.5% of the total property sale value.
+                  </li>
+                  <li>
+                    <strong>35% Rental Deal Commission:</strong> For all tenancy and rental lease agreements executed through the platform, the Dealer agrees to a total commission of 35% of one month’s total rent.
+                  </li>
+                  <li>
+                    <strong>50 / 50 Net Profit Share:</strong> The total net revenue/commission earned from any verified deal shall be split equally 50% / 50% between the Company and the Dealer, after deducting pre-approved platform marketing expenses.
+                  </li>
+                  <li>
+                    <strong>24-Hour Mandatory Inventory Verification:</strong> The Dealer agrees to log in to the portal and verify property availability every 24 hours. Inventory not re-confirmed within 24 hours will automatically be hidden from public listing.
+                  </li>
+                  <li>
+                    <strong>Non-Bypass & Lead Protection Clause:</strong> The Dealer strictly agrees not to bypass or circumvent the Company by dealing directly with introduced buyers/sellers off-platform. Any circumvention will result in immediate termination and financial recovery.
+                  </li>
+                  <li>
+                    <strong>Approved Marketing Expense Deductions:</strong> Any social media promotion, physical banners, or targeted digital campaigns must receive prior written/digital consent from the Company before expense deduction from final deal payouts.
+                  </li>
+                </ol>
+              </div>
+
+              <div className="mt-8 pt-6 border-t-2 border-gray-300 flex justify-end font-sans">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAgreedToTerms(true);
+                    setShowAgreementModal(false);
+                  }}
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer"
+                >
+                  I Understand & Agree
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
